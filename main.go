@@ -21,8 +21,11 @@ func main() {
 	c2 := widget.NewSelect([]string{"Option 1", "Option 2"}, func(value string) {
 		log.Println("Select set to", value)
 	})
+	button := widget.NewButton("click me", func() {
+		log.Println("tapped")
+	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 
-	myWindow.SetContent(container.NewVBox(gateLabel, c1, posLabel, c2))
+	myWindow.SetContent(container.NewVBox(gateLabel, c1, posLabel, c2, button))
 	myWindow.ShowAndRun()
 }
