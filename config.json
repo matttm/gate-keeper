@@ -1,0 +1,6 @@
+{
+	"tableName": "APLCTN_RVW_PRD",
+	"primaryKeyName": "APLCTN_RVW_PRD_CD",
+	"startKey": "EFCTV_STRT_DT",
+	"endKey": "EFCTV_END_ST"
+}
