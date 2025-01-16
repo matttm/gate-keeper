@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"os"
+	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -11,15 +11,15 @@ import (
 
 var DB *sql.DB
 
-func InitializeDatabase() {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USERNAME")
-	pass := os.Getenv("DB_PASSWORD")
+func InitializeDatabase(user, pass, host, port, dbname string) {
+	// host := os.Getenv("DB_HOST")
+	// port := os.Getenv("DB_PORT")
+	// user := os.Getenv("DB_USERNAME")
+	// pass := os.Getenv("DB_PASSWORD")
 	// TODO: ADD VALIDATION
 	db, err := sql.Open(
 		"mysql",
-		fmt.Sprintf("%s:%s@tcp(%s:%s)/SPOTICLI_DB", user, pass, host, port),
+		fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, dbname),
 	)
 	if err != nil {
 		panic(err)
@@ -29,7 +29,7 @@ func InitializeDatabase() {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 
-	flog.Successf("Database was successfully connected to")
+	log.Println("Database was successfully connected to")
 
 	DB = db
 }
@@ -40,7 +40,7 @@ func CloseDB() error {
 
 func GetDatabase() *sql.DB {
 	if DB == nil {
-		flog.Fatalf("Error: database not initialized")
+		log.Fatalf("Error: database not initialized")
 	}
 	return DB
 }

@@ -1,10 +1,7 @@
-package database
+package main
 
 import (
 	"database/sql"
-	"github.com/coder/flog"
-
-	models "github.com/matttm/spoticli/spoticli-models"
 )
 
 func InsertFileMetaInfo(tx *sql.Tx, key_name, bucket_name string, file_type_cd, file_size int) {

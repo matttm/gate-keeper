@@ -10,6 +10,14 @@ import (
 )
 
 func main() {
+	environment := GetEnvironment()
+	InitializeDatabase(
+		environment.user,
+		environment.pass,
+		environment.host,
+		environment.port,
+		environment.config.dbname,
+	)
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
 

@@ -1,4 +1,5 @@
 {
+	"dbname": "ACO_MS_DB",
 	"tableName": "APLCTN_RVW_PRD",
 	"primaryKeyName": "APLCTN_RVW_PRD_CD",
 	"startKey": "EFCTV_STRT_DT",
