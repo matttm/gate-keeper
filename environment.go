@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"os"
 )
@@ -34,13 +35,13 @@ func GetEnvironment() *Environment {
 			log.Fatal("Error opening log file")
 		}
 		defer file.Close()
-		var b []byte
-		var config *Config
-		_, err = file.Read(b)
+
+		var config Config
+		b, err := io.ReadAll(file)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = json.Unmarshal(b, config)
+		err = json.Unmarshal(b, &config)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -49,7 +50,7 @@ func GetEnvironment() *Environment {
 			pass,
 			host,
 			port,
-			config,
+			&config,
 		}
 	}
 	return _environment
