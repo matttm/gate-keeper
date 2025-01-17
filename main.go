@@ -16,24 +16,26 @@ func main() {
 		environment.pass,
 		environment.host,
 		environment.port,
-		environment.config.dbname,
+		environment.config.Dbname,
 	)
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
+	gateOptions := selectAllGates(environment.config, 2026)
 
 	gateLabel := widget.NewLabel("Select a gate")
-	posLabel := widget.NewLabel("Position relativr to gate")
-	c1 := widget.NewSelect([]string{"Option 1", "Option 2"}, func(value string) {
+	posLabel := widget.NewLabel("Position relative to gate")
+	gateOptionsSelect := widget.NewSelect(gateOptions, func(value string) {
 		log.Println("Select set to", value)
 	})
-	c2 := widget.NewSelect([]string{"Option 1", "Option 2"}, func(value string) {
+	posOptions := []string{"Outside before", "Inside", "Outside after"}
+	posOptionsSelect := widget.NewSelect(posOptions, func(value string) {
 		log.Println("Select set to", value)
 	})
-	button := widget.NewButton("click me", func() {
+	button := widget.NewButton("Set Gates", func() {
 		log.Println("tapped")
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 
-	myWindow.SetContent(container.NewVBox(gateLabel, c1, posLabel, c2, button))
+	myWindow.SetContent(container.NewVBox(gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
 	myWindow.ShowAndRun()
 }

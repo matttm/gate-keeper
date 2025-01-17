@@ -28,7 +28,10 @@ func InitializeDatabase(user, pass, host, port, dbname string) {
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
-
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
 	log.Println("Database was successfully connected to")
 
 	DB = db

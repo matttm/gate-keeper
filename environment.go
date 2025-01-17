@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -14,14 +15,15 @@ type Environment struct {
 	pass   string
 	host   string
 	port   string
-	config *Config
+	config *GateConfig
 }
-type Config struct {
-	dbname         string
-	tableName      string
-	primaryKeyName string
-	startKey       string
-	endKey         string
+type GateConfig struct {
+	Dbname      string
+	TableName   string
+	GateNameKey string
+	GateYearKey string
+	StartKey    string
+	EndKey      string
 }
 
 func GetEnvironment() *Environment {
@@ -36,7 +38,7 @@ func GetEnvironment() *Environment {
 		}
 		defer file.Close()
 
-		var config Config
+		var config GateConfig
 		b, err := io.ReadAll(file)
 		if err != nil {
 			log.Fatal(err)
@@ -44,6 +46,7 @@ func GetEnvironment() *Environment {
 		err = json.Unmarshal(b, &config)
 		if err != nil {
 			log.Fatal(err)
+			fmt.Println(config)
 		}
 		_environment = &Environment{
 			user,
