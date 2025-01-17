@@ -20,14 +20,17 @@ func main() {
 	)
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
-	gateOptions := selectAllGates(environment.config, 2026)
+	gates := selectAllGates(environment.config, 2026)
+	var gateOptions []string
+	for _, g := range gates {
+		gateOptions = append(gateOptions, g.GateName)
+	}
 
 	gateLabel := widget.NewLabel("Select a gate")
 	posLabel := widget.NewLabel("Position relative to gate")
 	gateOptionsSelect := widget.NewSelect(gateOptions, func(value string) {
 		log.Println("Select set to", value)
 	})
-	posOptions := []string{"Outside before", "Inside", "Outside after"}
 	posOptionsSelect := widget.NewSelect(posOptions, func(value string) {
 		log.Println("Select set to", value)
 	})
