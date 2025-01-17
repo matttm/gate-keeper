@@ -9,6 +9,11 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+type Selections struct {
+	gate string
+	pos  string
+}
+
 func main() {
 	environment := GetEnvironment()
 	InitializeDatabase(
@@ -18,6 +23,7 @@ func main() {
 		environment.port,
 		environment.config.Dbname,
 	)
+	selections := &Selections{}
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
 	gates := selectAllGates(environment.config, 2026)
@@ -29,13 +35,19 @@ func main() {
 	gateLabel := widget.NewLabel("Select a gate")
 	posLabel := widget.NewLabel("Position relative to gate")
 	gateOptionsSelect := widget.NewSelect(gateOptions, func(value string) {
+		selections.gate = value
 		log.Println("Select set to", value)
 	})
 	posOptionsSelect := widget.NewSelect(posOptions, func(value string) {
+		selections.pos = value
 		log.Println("Select set to", value)
 	})
 	button := widget.NewButton("Set Gates", func() {
+		if selections.gate == "" || selections.pos == "" {
+			log.Fatal("Choose all selections")
+		}
 		log.Println("tapped")
+		setGatesRelativeTo(environment.config, 2026, selections.gate, 1) // selections.pos)
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 

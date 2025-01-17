@@ -13,6 +13,8 @@ type Gate struct {
 	End      string
 }
 
+const WINDOW_SIZE = 3
+
 func selectAllGates(c *GateConfig, year int) []*Gate {
 	db := GetDatabase()
 	query := fmt.Sprintf("SELECT g.%s FROM %s.%s g WHERE g.%s = %d AND g.APLCTN_CYC = 'Y' ORDER BY g.SRT_ORDR ASC;", c.GateNameKey, c.Dbname, c.TableName, c.GateYearKey, year)
@@ -40,4 +42,47 @@ func updateGate(c *GateConfig, gate string, year int, start, end time.Time) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+}
+
+func setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) {
+	queries := _setGatesRelativeTo(c, year, gate, pos)
+	for _, s := range queries {
+		fmt.Println(s)
+		fmt.Println()
+	}
+}
+func _setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) []string {
+	gates := selectAllGates(c, year) // these are ordered
+	index := 0                       // so lets find index of gate were working relative to
+	for i, g := range gates {
+		if g.GateName == gate {
+			index = i
+			break
+		}
+	}
+	queryStrings := []string{}
+	for i := 0; i < len(gates); i++ { // set gates before selected gate
+		pastGate := gates[i]
+		s := createQueryString(c, year, pastGate.GateName, -1*index-i)
+		queryStrings = append(queryStrings, s)
+	}
+	return queryStrings
+}
+func createQueryString(c *GateConfig, year int, pastGate string, magnitude int) string {
+
+	halfday := time.Hour * time.Duration(12)
+	var date time.Time
+	switch {
+	case magnitude < 0:
+		date = time.Now().Add(time.Hour * 24 * time.Duration(magnitude))
+		break
+	case magnitude > 0:
+		date = time.Now().Add(time.Hour * 24 * time.Duration(magnitude))
+		break
+	default:
+		date = time.Now()
+	}
+	start := date.Add(-halfday)
+	end := date.Add(halfday)
+	return fmt.Sprintf("UPDATE %s.%s SET %s = %s, %s = %s WHERE %s = %s AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
 }
