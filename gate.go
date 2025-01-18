@@ -45,32 +45,36 @@ func updateGate(c *GateConfig, gate string, year int, start, end time.Time) {
 	}
 }
 
-func setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) {
-	queries := _setGatesRelativeTo(c, year, gate, pos)
-	for _, s := range queries {
-		fmt.Println(s)
-		fmt.Println()
-	}
-}
-func _setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) []string {
+func setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) []string {
 	gates := selectAllGates(c, year) // these are ordered
-	index := 0                       // so lets find index of gate were working relative to
+	queries := _setGatesRelativeTo(c, gates, time.Now(), year, gate, pos)
+	return queries
+	// for _, s := range queries {
+	// 	fmt.Println(s)
+	// 	fmt.Println()
+	// }
+}
+func _setGatesRelativeTo(c *GateConfig, gates []*Gate, now time.Time, year int, gate string, pos int) []string {
+	index := -1 // so lets find index of gate were working relative to
 	for i, g := range gates {
 		if g.GateName == gate {
 			index = i
 			break
 		}
 	}
+	if index < 0 {
+		log.Fatal("Specified gate not found")
+	}
 	queryStrings := []string{}
 	for i := 0; i < len(gates); i++ { // set gates before selected gate
 		pastGate := gates[i]
-		s := createQueryString(c, year, pastGate.GateName, -1*index-i)
+		s := createQueryString(c, now, year, pastGate.GateName, -i-index)
 		queryStrings = append(queryStrings, s)
 	}
 	return queryStrings
 }
-func createQueryString(c *GateConfig, year int, pastGate string, magnitude int) string {
-	return _createQueryString(c, time.Now(), year, pastGate, magnitude)
+func createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int) string {
+	return _createQueryString(c, now, year, pastGate, magnitude)
 }
 func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int) string {
 	halfday := time.Hour * time.Duration(12)
