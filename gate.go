@@ -13,7 +13,8 @@ type Gate struct {
 	End      string
 }
 
-const WINDOW_SIZE = 3
+const DAYS_PER_WINDOW = 3
+const createdFormat = "2006-01-02 15:04:05" //"Jan 2, 2006 at 3:04pm (MST)"
 
 func selectAllGates(c *GateConfig, year int) []*Gate {
 	db := GetDatabase()
@@ -69,20 +70,22 @@ func _setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) []string
 	return queryStrings
 }
 func createQueryString(c *GateConfig, year int, pastGate string, magnitude int) string {
-
+	return _createQueryString(c, time.Now(), year, pastGate, magnitude)
+}
+func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int) string {
 	halfday := time.Hour * time.Duration(12)
 	var date time.Time
 	switch {
 	case magnitude < 0:
-		date = time.Now().Add(time.Hour * 24 * time.Duration(magnitude))
+		date = now.Add(time.Hour * 24 * time.Duration(magnitude) * DAYS_PER_WINDOW)
 		break
 	case magnitude > 0:
-		date = time.Now().Add(time.Hour * 24 * time.Duration(magnitude))
+		date = now.Add(time.Hour * 24 * time.Duration(magnitude))
 		break
 	default:
-		date = time.Now()
+		date = now
 	}
-	start := date.Add(-halfday)
-	end := date.Add(halfday)
-	return fmt.Sprintf("UPDATE %s.%s SET %s = %s, %s = %s WHERE %s = %s AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
+	start := date.Add(-halfday).Format(createdFormat)
+	end := date.Add(halfday).Format(createdFormat)
+	return fmt.Sprintf("UPDATE %s.%s SET %s = '%s', %s = '%s' WHERE %s = '%s' AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
 }
