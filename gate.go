@@ -68,7 +68,7 @@ func _setGatesRelativeTo(c *GateConfig, gates []*Gate, now time.Time, year int, 
 	queryStrings := []string{}
 	for i := 0; i < len(gates); i++ { // set gates before selected gate
 		pastGate := gates[i]
-		s := createQueryString(c, now, year, pastGate.GateName, -i-index)
+		s := createQueryString(c, now, year, pastGate.GateName, i-index)
 		queryStrings = append(queryStrings, s)
 	}
 	return queryStrings
