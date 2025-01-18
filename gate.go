@@ -80,7 +80,7 @@ func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string,
 		date = now.Add(time.Hour * 24 * time.Duration(magnitude) * DAYS_PER_WINDOW)
 		break
 	case magnitude > 0:
-		date = now.Add(time.Hour * 24 * time.Duration(magnitude))
+		date = now.Add(time.Hour * 24 * time.Duration(magnitude) * DAYS_PER_WINDOW)
 		break
 	default:
 		date = now
