@@ -76,46 +76,79 @@ func Test_ShouldCreateQueryStrings(t *testing.T) {
 		pastGate        string
 		pos             int
 		expectedQueries []string
+		desc            string
+	}
+	gates := []*Gate{
+		{
+			GateName: "A",
+			GateYear: year,
+			Start:    "2020-01-01 00:00:00",
+			End:      "2020-01-01 00:00:00",
+		},
+		{
+			GateName: "B",
+			GateYear: year,
+			Start:    "2020-01-01 00:00:00",
+			End:      "2020-01-01 00:00:00",
+		},
+		{
+			GateName: "C",
+			GateYear: year,
+			Start:    "2020-01-01 00:00:00",
+			End:      "2020-01-01 00:00:00",
+		},
+		{
+			GateName: "D",
+			GateYear: year,
+			Start:    "2020-01-01 00:00:00",
+			End:      "2020-01-01 00:00:00",
+		},
 	}
 	table := []QueryStringsTest{
 		{
-			config: config,
-			gates: []*Gate{
-				{
-					GateName: "A",
-					GateYear: year,
-					Start:    "2020-01-01 00:00:00",
-					End:      "2020-01-01 00:00:00",
-				},
-				{
-					GateName: "B",
-					GateYear: year,
-					Start:    "2020-01-01 00:00:00",
-					End:      "2020-01-01 00:00:00",
-				},
-				{
-					GateName: "C",
-					GateYear: year,
-					Start:    "2020-01-01 00:00:00",
-					End:      "2020-01-01 00:00:00",
-				},
-				{
-					GateName: "D",
-					GateYear: year,
-					Start:    "2020-01-01 00:00:00",
-					End:      "2020-01-01 00:00:00",
-				},
-			},
+			config:   config,
+			gates:    gates,
 			Date:     "2025-06-15 12:00:00", // this is time.Now()
 			year:     2026,
 			pastGate: "B",
-			pos:      1, // this is the index of the gate chosen which has date Date
+			pos:      0, // this is the position relative to B--before/during/after
 			expectedQueries: []string{
 				"UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'A' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-15 00:00:00', E = '2025-06-16 00:00:00' WHERE P = 'B' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-18 00:00:00', E = '2025-06-19 00:00:00' WHERE P = 'C' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-21 00:00:00', E = '2025-06-22 00:00:00' WHERE P = 'D' AND Y = 2026;",
 			},
+			desc: "",
+		},
+		{
+			config:   config,
+			gates:    gates,
+			Date:     "2025-06-15 12:00:00", // this is time.Now()
+			year:     2026,
+			pastGate: "B",
+			pos:      -1, // this is the position relative to B--before/during/after
+			expectedQueries: []string{
+				"UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'A' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-15 00:00:00', E = '2025-06-15 06:00:00' WHERE P = 'B' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-18 00:00:00', E = '2025-06-19 00:00:00' WHERE P = 'C' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-21 00:00:00', E = '2025-06-22 00:00:00' WHERE P = 'D' AND Y = 2026;",
+			},
+			desc: "",
+		},
+		{
+			config:   config,
+			gates:    gates,
+			Date:     "2025-06-15 12:00:00", // this is time.Now()
+			year:     2026,
+			pastGate: "B",
+			pos:      1, // this is the position relative to B--before/during/after
+			expectedQueries: []string{
+				"UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'A' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-15 17:00:00', E = '2025-06-16 00:00:00' WHERE P = 'B' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-18 00:00:00', E = '2025-06-19 00:00:00' WHERE P = 'C' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-21 00:00:00', E = '2025-06-22 00:00:00' WHERE P = 'D' AND Y = 2026;",
+			},
+			desc: "",
 		},
 	}
 	for _, v := range table {
