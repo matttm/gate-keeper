@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -12,6 +13,7 @@ import (
 type Selections struct {
 	gate string
 	pos  string
+	year string
 }
 
 func main() {
@@ -32,8 +34,13 @@ func main() {
 		gateOptions = append(gateOptions, g.GateName)
 	}
 
+	yearLabel := widget.NewLabel("Select a year")
 	gateLabel := widget.NewLabel("Select a gate")
 	posLabel := widget.NewLabel("Position relative to gate")
+	yearOptionsSelect := widget.NewSelect([]string{"2026"}, func(value string) {
+		selections.year = value
+		log.Println("Select set to", value)
+	})
 	gateOptionsSelect := widget.NewSelect(gateOptions, func(value string) {
 		selections.gate = value
 		log.Println("Select set to", value)
@@ -47,10 +54,11 @@ func main() {
 			log.Fatal("Choose all selections")
 		}
 		log.Println("tapped")
-		setGatesRelativeTo(environment.config, 2026, selections.gate, RelativePositionStr(selections.pos).Value())
+		year, _ := strconv.ParseInt(selections.year, 10, 8)
+		setGatesRelativeTo(environment.config, int(year), selections.gate, RelativePositionStr(selections.pos).Value())
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 
-	myWindow.SetContent(container.NewVBox(gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
+	myWindow.SetContent(container.NewVBox(yearLabel, yearOptionsSelect, gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
 	myWindow.ShowAndRun()
 }
