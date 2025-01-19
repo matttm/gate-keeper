@@ -15,7 +15,7 @@ This program will configure the gates for a given year such that you will be vir
 
 Lets say, given the database of the above system, and as program inputs I provided: `year 2025`, `at gate c`, `place me before it`
 
-TThese inputs, will update the start datetime and end datetime of the application gates so that you are placed on the timeline as shown below. (indicated by `me`)
+These inputs, will update the start datetime and end datetime of the application gates so that you are placed on the timeline as shown below. (indicated by `me`)
 ```
        aaaaa       bbbbb  me   ccccc       ddddd       eeeee     
 ------------------------------------------------------------------------
