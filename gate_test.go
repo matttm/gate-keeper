@@ -25,6 +25,7 @@ func Test_ShouldCreateQueryString(t *testing.T) {
 		year          int
 		pastGate      string
 		magnitude     int
+		pos           RelativePosition
 		expectedQuery string
 	}
 	table := []QueryStringTest{
@@ -34,6 +35,7 @@ func Test_ShouldCreateQueryString(t *testing.T) {
 			year:          2026,
 			pastGate:      "P2",
 			magnitude:     0,
+			pos:           INSIDE,
 			expectedQuery: "UPDATE DB.G SET S = '2025-06-15 00:00:00', E = '2025-06-16 00:00:00' WHERE P = 'P2' AND Y = 2026;",
 		},
 		{
@@ -42,6 +44,7 @@ func Test_ShouldCreateQueryString(t *testing.T) {
 			year:          2026,
 			pastGate:      "P2",
 			magnitude:     -1, // indicates this is the first prev gate
+			pos:           INSIDE,
 			expectedQuery: "UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'P2' AND Y = 2026;",
 		},
 		{
@@ -50,6 +53,7 @@ func Test_ShouldCreateQueryString(t *testing.T) {
 			year:          2026,
 			pastGate:      "P2",
 			magnitude:     1, // indicates this is the first future
+			pos:           INSIDE,
 			expectedQuery: "UPDATE DB.G SET S = '2025-06-18 00:00:00', E = '2025-06-19 00:00:00' WHERE P = 'P2' AND Y = 2026;",
 		},
 		{
@@ -58,12 +62,13 @@ func Test_ShouldCreateQueryString(t *testing.T) {
 			year:          2026,
 			pastGate:      "P2",
 			magnitude:     2, // indicates this is the second future
+			pos:           INSIDE,
 			expectedQuery: "UPDATE DB.G SET S = '2025-06-21 00:00:00', E = '2025-06-22 00:00:00' WHERE P = 'P2' AND Y = 2026;",
 		},
 	}
 	for _, v := range table {
 		d, _ := time.Parse(createdFormat, v.Date)
-		q := _createQueryString(v.config, d, v.year, v.pastGate, v.magnitude)
+		q := _createQueryString(v.config, d, v.year, v.pastGate, v.magnitude, v.pos)
 		assert.Equal(t, q, v.expectedQuery)
 	}
 }
@@ -74,7 +79,7 @@ func Test_ShouldCreateQueryStrings(t *testing.T) {
 		Date            string
 		year            int
 		pastGate        string
-		pos             int
+		pos             RelativePosition
 		expectedQueries []string
 		desc            string
 	}
@@ -111,7 +116,7 @@ func Test_ShouldCreateQueryStrings(t *testing.T) {
 			Date:     "2025-06-15 12:00:00", // this is time.Now()
 			year:     2026,
 			pastGate: "B",
-			pos:      0, // this is the position relative to B--before/during/after
+			pos:      INSIDE,
 			expectedQueries: []string{
 				"UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'A' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-15 00:00:00', E = '2025-06-16 00:00:00' WHERE P = 'B' AND Y = 2026;",
@@ -126,10 +131,10 @@ func Test_ShouldCreateQueryStrings(t *testing.T) {
 			Date:     "2025-06-15 12:00:00", // this is time.Now()
 			year:     2026,
 			pastGate: "B",
-			pos:      -1, // this is the position relative to B--before/during/after
+			pos:      BEFORE,
 			expectedQueries: []string{
 				"UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'A' AND Y = 2026;",
-				"UPDATE DB.G SET S = '2025-06-15 00:00:00', E = '2025-06-15 06:00:00' WHERE P = 'B' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-15 18:00:00', E = '2025-06-16 00:00:00' WHERE P = 'B' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-18 00:00:00', E = '2025-06-19 00:00:00' WHERE P = 'C' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-21 00:00:00', E = '2025-06-22 00:00:00' WHERE P = 'D' AND Y = 2026;",
 			},
@@ -141,10 +146,10 @@ func Test_ShouldCreateQueryStrings(t *testing.T) {
 			Date:     "2025-06-15 12:00:00", // this is time.Now()
 			year:     2026,
 			pastGate: "B",
-			pos:      1, // this is the position relative to B--before/during/after
+			pos:      AFTER,
 			expectedQueries: []string{
 				"UPDATE DB.G SET S = '2025-06-12 00:00:00', E = '2025-06-13 00:00:00' WHERE P = 'A' AND Y = 2026;",
-				"UPDATE DB.G SET S = '2025-06-15 17:00:00', E = '2025-06-16 00:00:00' WHERE P = 'B' AND Y = 2026;",
+				"UPDATE DB.G SET S = '2025-06-15 00:00:00', E = '2025-06-15 06:00:00' WHERE P = 'B' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-18 00:00:00', E = '2025-06-19 00:00:00' WHERE P = 'C' AND Y = 2026;",
 				"UPDATE DB.G SET S = '2025-06-21 00:00:00', E = '2025-06-22 00:00:00' WHERE P = 'D' AND Y = 2026;",
 			},

@@ -38,7 +38,7 @@ func main() {
 		selections.gate = value
 		log.Println("Select set to", value)
 	})
-	posOptionsSelect := widget.NewSelect(posOptions, func(value string) {
+	posOptionsSelect := widget.NewSelect(getPositionOptions(), func(value string) {
 		selections.pos = value
 		log.Println("Select set to", value)
 	})
@@ -47,7 +47,7 @@ func main() {
 			log.Fatal("Choose all selections")
 		}
 		log.Println("tapped")
-		setGatesRelativeTo(environment.config, 2026, selections.gate, 1) // selections.pos)
+		setGatesRelativeTo(environment.config, 2026, selections.gate, RelativePositionStr(selections.pos).Value())
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 

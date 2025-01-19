@@ -45,7 +45,7 @@ func updateGate(c *GateConfig, gate string, year int, start, end time.Time) {
 	}
 }
 
-func setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) []string {
+func setGatesRelativeTo(c *GateConfig, year int, gate string, pos RelativePosition) []string {
 	gates := selectAllGates(c, year) // these are ordered
 	queries := _setGatesRelativeTo(c, gates, time.Now(), year, gate, pos)
 	return queries
@@ -54,7 +54,7 @@ func setGatesRelativeTo(c *GateConfig, year int, gate string, pos int) []string 
 	// 	fmt.Println()
 	// }
 }
-func _setGatesRelativeTo(c *GateConfig, gates []*Gate, now time.Time, year int, gate string, pos int) []string {
+func _setGatesRelativeTo(c *GateConfig, gates []*Gate, now time.Time, year int, gate string, pos RelativePosition) []string {
 	index := -1 // so lets find index of gate were working relative to
 	for i, g := range gates {
 		if g.GateName == gate {
@@ -68,28 +68,32 @@ func _setGatesRelativeTo(c *GateConfig, gates []*Gate, now time.Time, year int, 
 	queryStrings := []string{}
 	for i := 0; i < len(gates); i++ { // set gates before selected gate
 		pastGate := gates[i]
-		s := createQueryString(c, now, year, pastGate.GateName, i-index)
+		s := createQueryString(c, now, year, pastGate.GateName, i-index, pos)
 		queryStrings = append(queryStrings, s)
 	}
 	return queryStrings
 }
-func createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int) string {
-	return _createQueryString(c, now, year, pastGate, magnitude)
+func createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int, pos RelativePosition) string {
+	return _createQueryString(c, now, year, pastGate, magnitude, pos)
 }
-func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int) string {
+func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string, magnitude int, pos RelativePosition) string {
 	halfday := time.Hour * time.Duration(12)
 	var date time.Time
-	switch {
-	case magnitude < 0:
+	if magnitude != 0 {
 		date = now.Add(time.Hour * 24 * time.Duration(magnitude) * DAYS_PER_WINDOW)
-		break
-	case magnitude > 0:
-		date = now.Add(time.Hour * 24 * time.Duration(magnitude) * DAYS_PER_WINDOW)
-		break
-	default:
+	} else {
 		date = now
 	}
 	start := date.Add(-halfday).Format(createdFormat)
 	end := date.Add(halfday).Format(createdFormat)
+	if magnitude == 0 && pos != INSIDE {
+		shift := time.Hour * 6
+		if pos == BEFORE {
+			start = date.Add(shift).Format(createdFormat)
+		}
+		if pos == AFTER {
+			end = date.Add(-shift).Format(createdFormat)
+		}
+	}
 	return fmt.Sprintf("UPDATE %s.%s SET %s = '%s', %s = '%s' WHERE %s = '%s' AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
 }
