@@ -30,10 +30,28 @@ These files look like:
 
 config.json
 ```
+{
+	"Dbname": "DB_NAME",
+	"TableName": "GATE_TABLE",
+	"GateNameKey": "GATE_CODE",
+	"GateYearKey": "GATE-YEAR",
+	"StartKey": "GATE_STRT_DT",
+	"EndKey": "GATE_END_ST"
+}
 ```
 
 .env
 ```
+export DB_HOST="database.url.com"
+export DB_USERNAME="USER"
+export DB_PASSWORD="CocoNuttz"
+export DB_PORT="3306" # Default for MySql is 3306
 ```
 
-## Contributing
+## Authors
+
+-   Matt Maloney : matttm
+
+## Contribute
+
+If you want to contribute, just send me a message.
