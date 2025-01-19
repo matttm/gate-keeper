@@ -6,7 +6,7 @@ This a very simple program I wrote to automate a common task at work--opening an
 
 To help you visualize what this program does. see the below timeline:
 ```
-    aaaaaaaaa       bbbbbbbb        ccccc     ddddd          eeeee
+       aaaaa       bbbbb       ccccc       ddddd       eeeee     
 ------------------------------------------------------------------------
 ```
 This represents an application cycle, as you can see, the cycle has periods a through e.
@@ -17,7 +17,23 @@ Lets say, given the database of the above system, and as program inputs I provid
 
 TThese inputs, will update the start datetime and end datetime of the application gates so that you are placed on the timeline as shown below. (indicated by `me`)
 ```
-
-    aaaaaaaaa       bbbbbbbb   me   ccccc     ddddd          eeeee
+       aaaaa       bbbbb  me   ccccc       ddddd       eeeee     
 ------------------------------------------------------------------------
 ```
+In other words, the open and close dates of the gates are configured so that the current moment is before the opening of gate `c`.
+
+## Getting started
+
+To begin using this program, it rrequires two files for proper configuration--a `config.json` which is holds a mapping of the database schema, and an environment file, `.env`. In practice, the `.env` is not needed, we just need the contents to be in the environment of the one running the app.
+
+These files look like:
+
+config.json
+```
+```
+
+.env
+```
+```
+
+## Contributing
