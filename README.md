@@ -57,6 +57,7 @@ and run the binary:
 ./gate-keeper
 ```
 Then just choose the selects and press 'Set Gates'.
+
 <img width="568" alt="Screenshot 2025-01-19 at 1 45 29 PM" src="https://github.com/user-attachments/assets/83ecfe93-1c49-437a-8bec-5c73b3efbb67" />
 .
 
