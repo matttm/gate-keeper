@@ -48,6 +48,18 @@ export DB_PASSWORD="CocoNuttz"
 export DB_PORT="3306" # Default for MySql is 3306
 ```
 
+Once you have these files in your working directory and assuming you've already built from source, then source the `.env`
+```
+source .env
+```
+and run the binary:
+```
+./gate-keeper
+```
+Then just choose the selects and press 'Set Gates'.
+<img width="568" alt="Screenshot 2025-01-19 at 1 45 29 PM" src="https://github.com/user-attachments/assets/83ecfe93-1c49-437a-8bec-5c73b3efbb67" />
+.
+
 ## Authors
 
 -   Matt Maloney : matttm
