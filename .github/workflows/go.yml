@@ -31,7 +31,7 @@ jobs:
       run: go test -v ./...
     
     - name: Update coverage report
-      if: ${{ github.ref == 'refs/heads/master' }}
+      #if: ${{ github.ref == 'refs/heads/master' }}
       uses: ncruces/go-coverage-report@v0
       with:
         report: true
