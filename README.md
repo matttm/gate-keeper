@@ -38,7 +38,7 @@ config.json
 	"GateNameKey": "GATE_CODE",
 	"GateYearKey": "GATE-YEAR",
 	"StartKey": "GATE_STRT_DT",
-	"EndKey": "GATE_END_ST"
+	"EndKey": "GATE_END_DT"
 }
 ```
 
