@@ -18,12 +18,14 @@ type Environment struct {
 	config *GateConfig
 }
 type GateConfig struct {
-	Dbname      string
-	TableName   string
-	GateNameKey string
-	GateYearKey string
-	StartKey    string
-	EndKey      string
+	Dbname               string
+	TableName            string
+	GateNameKey          string
+	GateYearKey          string
+	GateOrderKey         string
+	GateIsApplicableFlag string
+	StartKey             string
+	EndKey               string
 }
 
 func GetEnvironment() *Environment {
