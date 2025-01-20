@@ -1,6 +1,6 @@
 # gate-keeper
 
-[![Test Coverage]()]()
+[![Go Coverage](https://github.com/matttm/gate-keeper/wiki/coverage.svg)](https://raw.githack.com/wiki/matttm/gate-keeper/coverage.html)
 
 ## Description
 
