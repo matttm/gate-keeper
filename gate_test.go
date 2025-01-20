@@ -18,7 +18,7 @@ var config = &GateConfig{
 	EndKey:      "E",
 }
 
-func Test_ShouldCreateQueryString(t *testing.T) {
+func TestGate_ShouldCreateQueryString(t *testing.T) {
 	type QueryStringTest struct {
 		config        *GateConfig
 		Date          string
@@ -72,7 +72,7 @@ func Test_ShouldCreateQueryString(t *testing.T) {
 		assert.Equal(t, q, v.expectedQuery)
 	}
 }
-func Test_ShouldCreateQueryStrings(t *testing.T) {
+func TestGate_ShouldCreateQueryStrings(t *testing.T) {
 	type QueryStringsTest struct {
 		config          *GateConfig
 		gates           []*Gate
