@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -50,11 +51,12 @@ func main() {
 		log.Println("Select set to", value)
 	})
 	button := widget.NewButton("Set Gates", func() {
-		if selections.gate == "" || selections.pos == "" {
-			log.Fatal("Choose all selections")
+		if selections.gate == "" || selections.pos == "" || selections.year == "" {
+			log.Fatal("All selections are required")
 		}
 		log.Println("tapped")
-		year, _ := strconv.ParseInt(selections.year, 10, 8)
+		year, _ := strconv.Atoi(selections.year)
+		fmt.Println(year, int(year))
 		setGatesRelativeTo(environment.config, int(year), selections.gate, RelativePositionStr(selections.pos).Value())
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))

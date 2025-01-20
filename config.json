@@ -4,5 +4,5 @@
 	"GateNameKey": "APLCTN_RVW_PRD_CD",
 	"GateYearKey": "PGM_YEAR",
 	"StartKey": "EFCTV_STRT_DT",
-	"EndKey": "EFCTV_END_ST"
+	"EndKey": "EFCTV_END_DT"
 }

@@ -12,11 +12,6 @@ import (
 var DB *sql.DB
 
 func InitializeDatabase(user, pass, host, port, dbname string) {
-	// host := os.Getenv("DB_HOST")
-	// port := os.Getenv("DB_PORT")
-	// user := os.Getenv("DB_USERNAME")
-	// pass := os.Getenv("DB_PASSWORD")
-	// TODO: ADD VALIDATION
 	db, err := sql.Open(
 		"mysql",
 		fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, dbname),
@@ -24,7 +19,6 @@ func InitializeDatabase(user, pass, host, port, dbname string) {
 	if err != nil {
 		panic(err)
 	}
-	// See "Important settings" section.
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
@@ -33,7 +27,6 @@ func InitializeDatabase(user, pass, host, port, dbname string) {
 		panic(err)
 	}
 	log.Println("Database was successfully connected to")
-
 	DB = db
 }
 
@@ -48,6 +41,11 @@ func GetDatabase() *sql.DB {
 	return DB
 }
 
-//  func ExecSql[T any](s string) (T, error) {
-//  	return GetDatabase().Exec(s)
-//  }
+func ExecSql(s string) bool {
+	_, err := GetDatabase().Exec(s)
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
+	return true
+}

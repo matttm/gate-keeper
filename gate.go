@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -13,8 +14,8 @@ type Gate struct {
 	End      string
 }
 
-const DAYS_PER_WINDOW = 3
 const createdFormat = "2006-01-02 15:04:05" //"Jan 2, 2006 at 3:04pm (MST)"
+const DAYS_PER_WINDOW = 3
 
 func selectAllGates(c *GateConfig, year int) []*Gate {
 	db := GetDatabase()
@@ -45,14 +46,19 @@ func updateGate(c *GateConfig, gate string, year int, start, end time.Time) {
 	}
 }
 
-func setGatesRelativeTo(c *GateConfig, year int, gate string, pos RelativePosition) []string {
+func setGatesRelativeTo(c *GateConfig, year int, gate string, pos RelativePosition) {
+	var wg sync.WaitGroup
 	gates := selectAllGates(c, year) // these are ordered
 	queries := _setGatesRelativeTo(c, gates, time.Now(), year, gate, pos)
-	return queries
-	// for _, s := range queries {
-	// 	fmt.Println(s)
-	// 	fmt.Println()
-	// }
+	for _, q := range queries {
+		wg.Add(1)
+		log.Println(q)
+		go func() {
+			defer wg.Done()
+			ExecSql(q)
+		}()
+	}
+	wg.Wait()
 }
 func _setGatesRelativeTo(c *GateConfig, gates []*Gate, now time.Time, year int, gate string, pos RelativePosition) []string {
 	index := -1 // so lets find index of gate were working relative to
