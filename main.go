@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 
@@ -14,7 +13,7 @@ import (
 type Selections struct {
 	gate string
 	pos  string
-	year string
+	year int
 }
 
 func main() {
@@ -29,35 +28,43 @@ func main() {
 	selections := &Selections{}
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
-	gates := selectAllGates(environment.config, 2026)
-	var gateOptions []string
-	for _, g := range gates {
-		gateOptions = append(gateOptions, g.GateName)
-	}
 
+	// create labels
 	yearLabel := widget.NewLabel("Select a year")
 	gateLabel := widget.NewLabel("Select a gate")
 	posLabel := widget.NewLabel("Position relative to gate")
-	yearOptionsSelect := widget.NewSelect([]string{"2026"}, func(value string) {
-		selections.year = value
+	// create select fields
+	var yearOptionsSelect *widget.Select
+	var gateOptionsSelect *widget.Select
+	var posOptionsSelect *widget.Select
+	yearOptionsSelect = widget.NewSelect([]string{}, func(value string) {
+		year, _ := strconv.Atoi(value)
+		selections.year = year
 		log.Println("Select set to", value)
+		gates := selectAllGates(environment.config, selections.year)
+		var gateOptions []string
+		for _, g := range gates {
+			gateOptions = append(gateOptions, g.GateName)
+		}
+		gateOptionsSelect.SetOptions(gateOptions)
 	})
-	gateOptionsSelect := widget.NewSelect(gateOptions, func(value string) {
+	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.gate = value
 		log.Println("Select set to", value)
 	})
-	posOptionsSelect := widget.NewSelect(getPositionOptions(), func(value string) {
+	posOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.pos = value
 		log.Println("Select set to", value)
 	})
+
+	yearOptionsSelect.SetOptions(selectAllYears(environment.config))
+	posOptionsSelect.SetOptions(getPositionOptions())
 	button := widget.NewButton("Set Gates", func() {
-		if selections.gate == "" || selections.pos == "" || selections.year == "" {
+		if selections.gate == "" || selections.pos == "" || selections.year == 0 {
 			log.Fatal("All selections are required")
 		}
 		log.Println("tapped")
-		year, _ := strconv.Atoi(selections.year)
-		fmt.Println(year, int(year))
-		setGatesRelativeTo(environment.config, int(year), selections.gate, RelativePositionStr(selections.pos).Value())
+		setGatesRelativeTo(environment.config, selections.year, selections.gate, RelativePositionStr(selections.pos).Value())
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 

@@ -17,9 +17,28 @@ type Gate struct {
 const createdFormat = "2006-01-02 15:04:05" //"Jan 2, 2006 at 3:04pm (MST)"
 const DAYS_PER_WINDOW = 3
 
+func selectAllYears(c *GateConfig) []string {
+	db := GetDatabase()
+	query := fmt.Sprintf("SELECT DISTINCT g.%s FROM %s.%s g WHERE g.%s = 'Y';", c.GateYearKey, c.Dbname, c.TableName, c.GateIsApplicableFlag)
+	log.Println(query)
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	years := []string{}
+	defer rows.Close()
+	for rows.Next() {
+		var year string
+		if err := rows.Scan(&year); err != nil {
+			log.Fatal(err.Error())
+		}
+		years = append(years, year)
+	}
+	return years
+}
 func selectAllGates(c *GateConfig, year int) []*Gate {
 	db := GetDatabase()
-	query := fmt.Sprintf("SELECT g.%s FROM %s.%s g WHERE g.%s = %d AND g.APLCTN_CYC = 'Y' ORDER BY g.SRT_ORDR ASC;", c.GateNameKey, c.Dbname, c.TableName, c.GateYearKey, year)
+	query := fmt.Sprintf("SELECT g.%s FROM %s.%s g WHERE g.%s = %d AND g.%s = 'Y' ORDER BY g.%s ASC;", c.GateNameKey, c.Dbname, c.TableName, c.GateYearKey, year, c.GateIsApplicableFlag, c.GateOrderKey)
 	fmt.Println(query)
 	rows, err := db.Query(query)
 	if err != nil {
@@ -35,15 +54,6 @@ func selectAllGates(c *GateConfig, year int) []*Gate {
 		gates = append(gates, gate)
 	}
 	return gates
-}
-
-func updateGate(c *GateConfig, gate string, year int, start, end time.Time) {
-	db := GetDatabase()
-	query := fmt.Sprintf("UPDATE %s.%s SET %s = %s, %s = %s WHERE %s = %s AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, gate, c.GateYearKey, year)
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
 
 func setGatesRelativeTo(c *GateConfig, year int, gate string, pos RelativePosition) {
