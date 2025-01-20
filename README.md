@@ -39,7 +39,7 @@ after
 ```
 ## Getting started
 
-To begin using this program, it rrequires two files for proper configuration--a `config.json` which is holds a mapping of the database schema, and an environment file, `.env`. In practice, the `.env` is not needed, we just need the contents to be in the environment of the one running the app.
+To begin using this program, it rrequires two files for proper configuration--a `config.json` which is holds a mapping of the database schema, and an environment file, `.env`. In practice, the `.env` is not needed, we just need the variables to be in the environment of the one running the app.
 
 These files look like:
 
