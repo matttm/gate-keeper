@@ -28,12 +28,15 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./...
+      run: |
+        go test -v ./... -covermode=count -coverprofile=coverage.out -run TestGate
+        go tool cover -func=coverage.out -o=coverage.out
     
     - name: Update coverage report
       #if: ${{ github.ref == 'refs/heads/master' }}
       uses: ncruces/go-coverage-report@v0
       with:
+        coverage-file: ${{ runner.temp }}/coverage.out
         report: true
         chart: true
         amend: true
