@@ -24,6 +24,19 @@ These inputs, will update the start datetime and end datetime of the application
 ```
 In other words, the open and close dates of the gates are configured so that the current moment is before the opening of gate `c`.
 
+For the third input, other options are `after` and `inside`, which wouls appear as:
+
+inside:
+```
+                                me
+       aaaaa       bbbbb       ccccc       ddddd       eeeee     
+------------------------------------------------------------------------
+```
+after
+```
+       aaaaa       bbbbb       ccccc   me  ddddd       eeeee     
+------------------------------------------------------------------------
+```
 ## Getting started
 
 To begin using this program, it rrequires two files for proper configuration--a `config.json` which is holds a mapping of the database schema, and an environment file, `.env`. In practice, the `.env` is not needed, we just need the contents to be in the environment of the one running the app.
@@ -37,6 +50,8 @@ config.json
 	"TableName": "GATE_TABLE",
 	"GateNameKey": "GATE_CODE",
 	"GateYearKey": "GATE-YEAR",
+	"GateOrderKey": "SRT_ORDR",
+	"GateIsApplicableFlag": "IS_ENABLED",
 	"StartKey": "GATE_STRT_DT",
 	"EndKey": "GATE_END_DT"
 }
