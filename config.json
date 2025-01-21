@@ -1,10 +1,10 @@
 {
-	"Dbname": "ACO_MS_DB",
-	"TableName": "APLCTN_RVW_PRD",
-	"GateNameKey": "APLCTN_RVW_PRD_CD",
-	"GateYearKey": "PGM_YEAR",
+	"Dbname": "DB_NAME",
+	"TableName": "GATE_TABLE",
+	"GateNameKey": "GATE_CODE",
+	"GateYearKey": "GATE-YEAR",
 	"GateOrderKey": "SRT_ORDR",
-	"GateIsApplicableFlag": "APLCTN_CYC",
-	"StartKey": "EFCTV_STRT_DT",
-	"EndKey": "EFCTV_END_DT"
+	"GateIsApplicableFlag": "IS_ENABLED",
+	"StartKey": "GATE_STRT_DT",
+	"EndKey": "GATE_END_DT"
 }
