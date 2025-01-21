@@ -38,7 +38,9 @@ after
 ------------------------------------------------------------------------
 ```
 
-**_NOTE:_** To be clear and specific, this program will update all gates that are part of an application cycle, such that the selected gate is today's date, with a relative offset, which is set based on the program's third parameter.
+---
+NOTE: To be clear and specific, this program will update all gates that are part of an application cycle, such that the selected gate is today's date, with a relative offset, which is set based on the program's third parameter.
+--
 
 ## Getting started
 
