@@ -46,6 +46,7 @@ func main() {
 		for _, g := range gates {
 			gateOptions = append(gateOptions, g.GateName)
 		}
+		selections.gate = ""
 		gateOptionsSelect.SetOptions(gateOptions)
 	})
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
