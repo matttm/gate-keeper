@@ -47,6 +47,7 @@ func main() {
 			gateOptions = append(gateOptions, g.GateName)
 		}
 		selections.gate = ""
+		gateOptionsSelect.SetSelected("")
 		gateOptionsSelect.SetOptions(gateOptions)
 	})
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {

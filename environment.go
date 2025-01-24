@@ -11,11 +11,16 @@ import (
 var _environment *Environment = nil
 
 type Environment struct {
-	user   string
-	pass   string
-	host   string
-	port   string
-	config *GateConfig
+	User   string
+	Pass   string
+	Host   string
+	Port   string
+	Config *GateConfig
+}
+type Credentials Environment
+type Config struct {
+	Credentials Credentials
+	GateConfig  GateConfig
 }
 type GateConfig struct {
 	Dbname               string
