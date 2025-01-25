@@ -17,13 +17,13 @@ type Selections struct {
 }
 
 func main() {
-	environment := GetEnvironment()
+	config := GetEnvironment()
 	InitializeDatabase(
-		environment.user,
-		environment.pass,
-		environment.host,
-		environment.port,
-		environment.config.Dbname,
+		config.Credentials.User,
+		config.Credentials.Pass,
+		config.Credentials.Host,
+		config.Credentials.Port,
+		config.GateConfig.Dbname,
 	)
 	selections := &Selections{}
 	myApp := app.New()
@@ -41,7 +41,7 @@ func main() {
 		year, _ := strconv.Atoi(value)
 		selections.year = year
 		log.Println("Select set to", value)
-		gates := selectAllGates(environment.config, selections.year)
+		gates := selectAllGates(&config.GateConfig, selections.year)
 		var gateOptions []string
 		for _, g := range gates {
 			gateOptions = append(gateOptions, g.GateName)
@@ -59,14 +59,14 @@ func main() {
 		log.Println("Select set to", value)
 	})
 
-	yearOptionsSelect.SetOptions(selectAllYears(environment.config))
+	yearOptionsSelect.SetOptions(selectAllYears(&config.GateConfig))
 	posOptionsSelect.SetOptions(getPositionOptions())
 	button := widget.NewButton("Set Gates", func() {
 		if selections.gate == "" || selections.pos == "" || selections.year == 0 {
 			log.Fatal("All selections are required")
 		}
 		log.Println("tapped")
-		setGatesRelativeTo(environment.config, selections.year, selections.gate, RelativePositionStr(selections.pos).Value())
+		setGatesRelativeTo(&config.GateConfig, selections.year, selections.gate, RelativePositionStr(selections.pos).Value())
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 
