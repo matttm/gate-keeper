@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"strconv"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -63,7 +64,12 @@ func main() {
 	posOptionsSelect.SetOptions(getPositionOptions())
 	button := widget.NewButton("Set Gates", func() {
 		if selections.gate == "" || selections.pos == "" || selections.year == 0 {
-			log.Fatal("All selections are required")
+			popupLabel := widget.NewLabel("All selections are required")
+			popup := widget.NewModalPopUp(container.NewVBox(popupLabel), fyne.CurrentApp().Driver().CanvasForObject(posOptionsSelect))
+			popup.Show()
+			<-time.NewTimer(3 * time.Second).C
+			popup.Hide()
+			return
 		}
 		log.Println("tapped")
 		setGatesRelativeTo(&config.GateConfig, selections.year, selections.gate, RelativePositionStr(selections.pos).Value())
