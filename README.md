@@ -44,33 +44,33 @@ NOTE: To be clear and specific, this program will update all gates that are part
 
 ## Getting started
 
-To begin using this program, it rrequires two files for proper configuration--a `config.json` which is holds a mapping of the database schema, and an environment file, `.env`. In practice, the `.env` is not needed, we just need the variables to be in the environment of the one running the app.
+To begin using this program, it rrequires one file for configuration.
 
-These files look like:
+This file look like:
 
 config.json
-```
-{
-	"Dbname": "DB_NAME",
-	"TableName": "GATE_TABLE",
-	"GateNameKey": "GATE_CODE",
-	"GateYearKey": "GATE-YEAR",
-	"GateOrderKey": "SRT_ORDR",
-	"GateIsApplicableFlag": "IS_ENABLED",
-	"StartKey": "GATE_STRT_DT",
-	"EndKey": "GATE_END_DT"
+```{
+	"Credentials": {
+		"User": "USER",
+		"Pass": "xxxx",
+		"Host": "url",
+		"Port": "3306"
+	},
+	"GateConfig": {
+		"Dbname": "dbname",
+		"TableName": "table",
+		"GateNameKey": "code",
+		"GateYearKey": "year",
+		"GateOrderKey": "order",
+		"GateIsApplicableFlag": "active",
+		"StartKey": "start",
+		"EndKey": "end"
+	}
 }
+
 ```
 
-.env
-```
-export DB_HOST="database.url.com"
-export DB_USERNAME="USER"
-export DB_PASSWORD="CocoNuttz"
-export DB_PORT="3306" # Default for MySql is 3306
-```
-
-Once you have these files in your working directory and assuming you've already built from source, then source the `.env`
+Once you have this file in your working directory and assuming you've already built from source
 ```
 source .env
 ```
