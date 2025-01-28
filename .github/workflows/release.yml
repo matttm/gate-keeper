@@ -1,33 +1,43 @@
-name: Build and Release Go Binary
+name: Build and Release Multi-Arch Go
 
 on:
   push:
     tags:
-      - 'v*' 
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ 'latest' ]
+        os: [ ubuntu-latest ]
+        arch: [ 'amd64', 'arm64' ]
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install X11 dependencies
-      run: sudo apt-get update && sudo apt-get install -y libx11-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev libxrandr-dev libxi-dev xorg-dev
-      
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23.1'
-        
-    - name: Build
-      run: go build -v ./...
-    
-    - name: Upload Release Artifact
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          myapp
-        tag_name: ${{ github.ref }}
-        name: gate-keeper
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - run: echo "Building for ${{ matrix.os }} - ${{ matrix.arch }}"
+      - run: export GOOS=linux
+      - run: export GOARCH={{ matrix.arch }}
+      - run: go build -o myapp
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Built for ${{ matrix.arch }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.Create_Release.outputs.upload_url }}
+          asset_path: myapp
+          asset_name: myapp_linux_ ${{ matrix.arch }}
