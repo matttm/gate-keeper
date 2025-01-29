@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Install X11 dependencies
-        run: brew update && brew install libx11 libxinerama libxcursor libxi libgl1-mesa libxrandr libxi xorg
+        run: brew update && brew install libx11 libxinerama libxcursor libxi libgl1-mesa-glu libxrandr libxi xorg
 
       - name: Set up Go
         uses: actions/setup-go@v3
