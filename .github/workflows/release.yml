@@ -1,43 +1,34 @@
-name: Build and Release Multi-Arch Go
+name: Build for Mac
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      - macOS-latest
     strategy:
       matrix:
-        go-version: [ 'latest' ]
-        os: [ ubuntu-latest ]
-        arch: [ 'amd64', 'arm64' ]
+        arch: [ amd64, arm64 ]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
-          go-version: ${{ matrix.go-version }}
-      - run: echo "Building for ${{ matrix.os }} - ${{ matrix.arch }}"
-      - run: export GOOS=linux
-      - run: export GOARCH={{ matrix.arch }}
-      - run: go build -o myapp
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          go-version: 1.18  # Replace with your desired Go version
+          
+      - name: Build for each architecture
+        run: |
+          export GOOS=darwin
+          export GOARCH={{ matrix.arch }}
+          go build -o my-app
+          
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Built for ${{ matrix.arch }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.Create_Release.outputs.upload_url }}
-          asset_path: myapp
-          asset_name: myapp_linux_ ${{ matrix.arch }}
+          name: my-app-{{ matrix.arch }}
+          path: my-app
