@@ -1,10 +1,9 @@
-name: Build for Mac
+name: Build and Release Mac Binaries
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,22 +12,47 @@ jobs:
     strategy:
       matrix:
         arch: [ amd64, arm64 ]
+        go-version: [ '1.18', '1.19' ]  # Replace with your desired Go versions
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18  # Replace with your desired Go version
-          
+          go-version: ${{ matrix.go-version }}
+
       - name: Build for each architecture
         run: |
           export GOOS=darwin
           export GOARCH={{ matrix.arch }}
-          go build -o my-app
+          go build -o "my-app-{{ matrix.arch }}"  
           
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v3
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ steps.build.outputs.status == 'success' }}
         with:
-          name: my-app-{{ matrix.arch }}
-          path: my-app
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Built binaries for macOS with Intel (amd64) and Apple Silicon (arm64) architectures.
+          draft: false
+          prerelease: false
+
+      - name: Upload binaries to release
+        id: upload_release_assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ steps.create_release.outputs.created_release_id }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: |
+            my-app-amd64
+            my-app-arm64
+          asset_name: |
+            my-app-amd64
+            my-app-arm64
