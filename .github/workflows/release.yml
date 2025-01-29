@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         arch: [ amd64, arm64 ]
-        go-version: [ '1.18', '1.19' ]  # Replace with your desired Go versions
+        go-version: [ '1.23.1' ]
 
     steps:
       - uses: actions/checkout@v3
@@ -51,8 +51,8 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: |
-            my-app-amd64
-            my-app-arm64
+            gate-keeper-amd64
+            gate-keeper-arm64
           asset_name: |
-            my-app-amd64
-            my-app-arm64
+            gate-keeper-amd64
+            gate-keeper-arm64
