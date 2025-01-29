@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strconv"
 	"time"
 
@@ -41,7 +40,6 @@ func main() {
 	yearOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		year, _ := strconv.Atoi(value)
 		selections.year = year
-		log.Println("Select set to", value)
 		gates := selectAllGates(&config.GateConfig, selections.year)
 		var gateOptions []string
 		for _, g := range gates {
@@ -53,11 +51,9 @@ func main() {
 	})
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.gate = value
-		log.Println("Select set to", value)
 	})
 	posOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.pos = value
-		log.Println("Select set to", value)
 	})
 
 	yearOptionsSelect.SetOptions(selectAllYears(&config.GateConfig))
@@ -71,7 +67,6 @@ func main() {
 			popup.Hide()
 			return
 		}
-		log.Println("tapped")
 		setGatesRelativeTo(&config.GateConfig, selections.year, selections.gate, RelativePositionStr(selections.pos).Value())
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
