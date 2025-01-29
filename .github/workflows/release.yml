@@ -25,8 +25,8 @@ jobs:
       - name: Build for each architecture
         run: |
           export GOOS=darwin
-          export GOARCH={{ matrix.arch }}
-          go build -o "my-app-{{ matrix.arch }}"  
+          export GOARCH=${{ matrix.arch }}
+          go build -o "gate-keeper-${{ matrix.arch }}"  
           
       - name: Create release
         id: create_release
