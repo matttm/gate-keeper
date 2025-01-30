@@ -20,6 +20,9 @@ jobs:
       - name: Install X11 dependencies
         run: brew update && brew install libx11 libxinerama libxcursor libxi mesa-glu libxrandr libxi xorg-server
 
+      - name: Install XQuartz (if needed)
+        run: brew install --cask xquartz
+        
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
