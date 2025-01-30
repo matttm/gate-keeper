@@ -13,11 +13,10 @@ jobs:
     strategy:
       matrix:
         goos: [linux, windows, darwin]
-        goarch: [amd64, arm64] # Add arm64 if needed for macOS/Linux
-        # Exclude Windows ARM64 builds for now (unless you have setup for it)
+        goarch: [amd64, arm64]
         exclude:
           - goos: windows
-            goarch: arm64
+            goarch: arm64  # Exclude Windows ARM64 (unless you have setup)
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -30,26 +29,38 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libx11-dev libxext6-dev libxrender-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev
 
-      - name: Set up dependencies (Windows)
+      - name: Set up dependencies and environment (Windows)
         if: matrix.goos == 'windows'
         run: |
-          # Install MinGW (or similar) and dependencies if needed.  This is complex and depends on your project's dependencies.
-          # This is a placeholder - you'll need to adapt this based on what your Fyne app needs.
-          echo "Setting up Windows dependencies (Placeholder - Adapt as needed)"
-          # Example (may not be sufficient - adapt as needed):
-          # choco install mingw -y --no-progress
-          # ... install other dependencies as needed ...
+          # 1. Install MSYS2 (or your preferred MinGW environment)
+          choco install msys2 -y --no-progress  # Or download and install manually
+
+          # 2. Add MinGW to PATH (Adjust path if needed)
+          echo "::add-path::C:\msys64\usr\bin;C:\msys64\mingw64\bin"
+
+          # 3. Update pacman (MSYS2 package manager)
+          C:\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
+
+          # 4. Install MinGW packages (ADAPT THIS BASED ON YOUR FYNE APP'S NEEDS)
+          C:\msys64\usr\bin\bash.exe -lc "pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-pkg-config # ... other packages ..."
+
+          # 5. Set Environment Variables (Crucial for CGO)
+          echo "::set-env::CC=gcc"  # Set the C compiler
+          echo "::set-env::CXX=g++" # Set the C++ compiler
+          # ... other environment variables as needed (e.g., for libraries) ...
+
 
       - name: Set up dependencies (macOS)
         if: matrix.goos == 'darwin'
         run: |
-          brew update # Update Homebrew
-          brew install pkg-config # Install pkg-config if your app depends on it
-          # Install other macOS dependencies if your app requires them (often not needed for Fyne)
+          brew update
+          brew install pkg-config  # Or any other macOS dependencies
 
       - name: Build Fyne app
+        env:  # Set environment variables for the build step (if needed)
+          CGO_ENABLED: 1 # Enable CGO (Important!)
         run: |
-          go build -ldflags="-H=${{ matrix.goos }}-{{ matrix.goarch }}" -o ${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }} ./... # Build the app
+          go build -ldflags="-H=${{ matrix.goos }}-{{ matrix.goarch }}" -o ${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }} ./...
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
