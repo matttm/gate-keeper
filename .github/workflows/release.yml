@@ -14,11 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Install X11 dependencies
-        run: brew update && brew install libx11 glfw xvfb libxinerama libxcursor libxi mesa-glu libxrandr libxi xorg-server
+      - name: Update packages
+        run: sudo apt update
 
-      - name: Install XQuartz (if needed)
-        run: brew install --cask xquartz
+      - name: Install OpenGL libraries
+        run: sudo apt install libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev
 
       - name: Build for multiple architectures
         run: |
