@@ -25,6 +25,9 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: clean dependencies
+        run: go mod tidy
+        
       - name: Build for each architecture
         run: |
           export GOOS=darwin
