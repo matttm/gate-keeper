@@ -43,12 +43,16 @@ jobs:
       run: |
         go install fyne.io/fyne/v2/cmd/fyne@latest
 
-    - name: Get binary name
-      id: get_binary
+    - name: Get binary name (Unix)
+      if: matrix.platform != 'windows'
+      run: echo "BINARY_NAME=$(basename $(go list -m))" >> $GITHUB_ENV
+
+    - name: Get binary name (Windows)
+      if: matrix.platform == 'windows'
+      shell: pwsh
       run: |
-        BINARY_NAME=$(go list -m)
-        echo "Binary name: $BINARY_NAME"
-        echo "binary_name=${BINARY_NAME##*/}" >> $GITHUB_OUTPUT
+        $BinaryName = (go list -m) -split '/' | Select-Object -Last 1
+        echo "BINARY_NAME=$BinaryName" >> $env:GITHUB_ENV
 
     - name: Build for ${{ matrix.platform }}
       run: |
@@ -58,20 +62,18 @@ jobs:
     - name: Prepare binary for upload (macOS)
       if: matrix.platform == 'darwin'
       run: |
-        BINARY_NAME=${{ steps.get_binary.outputs.binary_name }}
-        cp -r $BINARY_NAME.app myapp-${{ matrix.platform }}.app
+        cp -r "${{ env.BINARY_NAME }}.app" "myapp-${{ matrix.platform }}.app"
 
     - name: Prepare binary for upload (Windows)
       if: matrix.platform == 'windows'
+      shell: pwsh
       run: |
-        BINARY_NAME=${{ steps.get_binary.outputs.binary_name }}
-        mv $BINARY_NAME.exe myapp-${{ matrix.platform }}.exe
+        Move-Item "${{ env.BINARY_NAME }}.exe" "myapp-${{ matrix.platform }}.exe"
 
     - name: Prepare binary for upload (Linux)
       if: matrix.platform == 'linux'
       run: |
-        BINARY_NAME=${{ steps.get_binary.outputs.binary_name }}
-        mv $BINARY_NAME myapp-${{ matrix.platform }}
+        mv "${{ env.BINARY_NAME }}" "myapp-${{ matrix.platform }}"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
