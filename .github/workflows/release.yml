@@ -46,7 +46,7 @@ jobs:
     - name: Build for ${{ matrix.platform }}
       run: |
         go mod download
-        fyne package -os ${{ matrix.platform }} -icon ./icon.png
+        fyne package -os ${{ matrix.platform }}
 
     - name: Rename binary
       run: |
