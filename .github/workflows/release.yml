@@ -17,7 +17,7 @@ jobs:
             ext: ""
           - os: macos-latest
             platform: darwin
-            ext: ""
+            ext: ".app"
           - os: windows-latest
             platform: windows
             ext: ".exe"
@@ -43,14 +43,35 @@ jobs:
       run: |
         go install fyne.io/fyne/v2/cmd/fyne@latest
 
+    - name: Get binary name
+      id: get_binary
+      run: |
+        BINARY_NAME=$(go list -m)
+        echo "Binary name: $BINARY_NAME"
+        echo "binary_name=${BINARY_NAME##*/}" >> $GITHUB_OUTPUT
+
     - name: Build for ${{ matrix.platform }}
       run: |
         go mod download
         fyne package -os ${{ matrix.platform }}
 
-    - name: Rename binary
+    - name: Prepare binary for upload (macOS)
+      if: matrix.platform == 'darwin'
       run: |
-        mv *${{ matrix.ext }} myapp-${{ matrix.platform }}${{ matrix.ext }}
+        BINARY_NAME=${{ steps.get_binary.outputs.binary_name }}
+        cp -r $BINARY_NAME.app myapp-${{ matrix.platform }}.app
+
+    - name: Prepare binary for upload (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        BINARY_NAME=${{ steps.get_binary.outputs.binary_name }}
+        mv $BINARY_NAME.exe myapp-${{ matrix.platform }}.exe
+
+    - name: Prepare binary for upload (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        BINARY_NAME=${{ steps.get_binary.outputs.binary_name }}
+        mv $BINARY_NAME myapp-${{ matrix.platform }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -74,7 +95,7 @@ jobs:
       with:
         files: |
           myapp-linux/myapp-linux
-          myapp-darwin/myapp-darwin
+          myapp-darwin/myapp-darwin.app/**/*
           myapp-windows/myapp-windows.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
