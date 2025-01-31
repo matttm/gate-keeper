@@ -1,51 +1,79 @@
-name: Cross Compile Fyne App
+name: Build and Release Fyne App
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  
+    tags:
+      - 'v*' # Trigger on version tags like v1.0.0
+
 jobs:
   build:
-    runs-on: ${{ matrix.os }}  # Use matrix variable for runs-on
+    name: Build and Release
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest] # Include macOS
-        goarch: [amd64, arm64] # or whatever architectures you need
-        exclude: # common to exclude windows arm64
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            ext: ""
+          - os: macos-latest
+            platform: darwin
+            ext: ""
           - os: windows-latest
-            goarch: arm64
+            platform: windows
+            ext: ".exe"
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.20' # Or your preferred version
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          # ... Linux dependency installation ...
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'  # Use the Go version your project requires
 
-      - name: Set up dependencies (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew update
-          brew install <package1> <package2> ...
+    - name: Install dependencies for Linux
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
 
-      - name: Set up dependencies and environment (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          # ... Windows dependency installation (very OS specific) ...
+    - name: Install Fyne dependencies
+      run: |
+        go install fyne.io/fyne/v2/cmd/fyne@latest
 
-      - name: Build Fyne app
-        env:
-          CGO_ENABLED: 1 # Important for CGO
-        run: |
-          go build -ldflags="-H=${{ matrix.os }}-${{ matrix.goarch }}" -o ${{ matrix.os }}-${{ matrix.goarch }}-${{ github.sha }} ./...
+    - name: Build for ${{ matrix.platform }}
+      run: |
+        go mod download
+        fyne package -os ${{ matrix.platform }} -icon ./icon.png
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-${{ matrix.os }}-${{ matrix.goarch }}
-          path: ${{ matrix.os }}-${{ matrix.goarch }}-${{ github.sha }}
+    - name: Rename binary
+      run: |
+        mv *${{ matrix.ext }} myapp-${{ matrix.platform }}${{ matrix.ext }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: myapp-${{ matrix.platform }}
+        path: myapp-${{ matrix.platform }}${{ matrix.ext }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          myapp-linux/myapp-linux
+          myapp-darwin/myapp-darwin
+          myapp-windows/myapp-windows.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
