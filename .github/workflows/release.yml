@@ -1,45 +1,43 @@
-name: Cross Compile Fyne App
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}  # Use matrix variable for runs-on
     strategy:
       matrix:
-        goos: [linux, macOS-latest]
-        goarch: [amd64, arm64]
+        os: [ubuntu-latest, macos-latest, windows-latest] # Include macOS
+        goarch: [amd64, arm64] # or whatever architectures you need
+        exclude: # common to exclude windows arm64
+          - os: windows-latest
+            goarch: arm64
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.23.x' # Or your preferred version
+          go-version: '1.20' # Or your preferred version
 
       - name: Set up dependencies (Linux)
-        if: matrix.goos == 'linux'
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libx11-dev libxext6-dev libxrender-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev
+          # ... Linux dependency installation ...
 
       - name: Set up dependencies (macOS)
-        if: matrix.goos == 'macOS-latest'
+        if: matrix.os == 'macos-latest'
         run: |
           brew update
-          brew install pkg-config  # Or any other macOS dependencies
+          brew install <package1> <package2> ...
+
+      - name: Set up dependencies and environment (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          # ... Windows dependency installation (very OS specific) ...
 
       - name: Build Fyne app
-        env:  # Set environment variables for the build step (if needed)
-          CGO_ENABLED: 1 # Enable CGO (Important!)
+        env:
+          CGO_ENABLED: 1 # Important for CGO
         run: |
-          go build -ldflags="-H=${{ matrix.goos }}-{{ matrix.goarch }}" -o ${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }} ./...
+          go build -ldflags="-H=${{ matrix.os }}-${{ matrix.goarch }}" -o ${{ matrix.os }}-${{ matrix.goarch }}-${{ github.sha }} ./...
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: ${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.sha }}
+          name: app-${{ matrix.os }}-${{ matrix.goarch }}
+          path: ${{ matrix.os }}-${{ matrix.goarch }}-${{ github.sha }}
