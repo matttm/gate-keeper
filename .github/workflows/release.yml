@@ -53,10 +53,11 @@ jobs:
         mv *${{ matrix.ext }} myapp-${{ matrix.platform }}${{ matrix.ext }}
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: myapp-${{ matrix.platform }}
         path: myapp-${{ matrix.platform }}${{ matrix.ext }}
+        retention-days: 5
 
   release:
     needs: build
@@ -66,7 +67,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
@@ -77,3 +78,4 @@ jobs:
           myapp-windows/myapp-windows.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
