@@ -10,9 +10,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   ext: ""
+          - os: ubuntu-latest
+            platform: linux
+            ext: ""
           - os: macos-latest
             platform: darwin
             ext: ".app"
@@ -53,12 +53,12 @@ jobs:
       if: matrix.platform != 'darwin'
       run: |
         go mod download
-        fyne package -os ${{ matrix.platform }}
+        fyne package --os=${{ matrix.platform }}
     - name: Build for macOS
       if: matrix.platform == 'darwin'
       run: |
         go mod download
-        GOARCH=${{ matrix.arch }} fyne package -os ${{ matrix.platform }}
+        GOARCH=${{ matrix.arch }} fyne package --os=${{ matrix.platform }}
     - name: Prepare binary for upload (macOS)
       if: matrix.platform == 'darwin'
       run: |
