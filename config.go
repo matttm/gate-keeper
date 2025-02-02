@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 var _config *Config = nil
@@ -31,9 +32,18 @@ type GateConfig struct {
 	EndKey               string
 }
 
-func GetEnvironment() *Config {
+func GetConfig() *Config {
 	if _config == nil {
-		file, err := os.Open("config.json")
+		// Get the directory where the executable is located.
+		executablePath, err := os.Executable()
+		if err != nil {
+			fmt.Println("Error getting executable path:", err)
+			panic(err)
+		}
+		executableDir := filepath.Dir(executablePath)
+		// Construct the path to the JSON file relative to the executable.
+		filePath := filepath.Join(executableDir, "config.json") // or "config/data.json" if in a subdirectory
+		file, err := os.Open(filePath)
 		if err != nil {
 		}
 		defer file.Close()

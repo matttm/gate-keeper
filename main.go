@@ -17,7 +17,7 @@ type Selections struct {
 }
 
 func main() {
-	config := GetEnvironment()
+	config := GetConfig()
 	InitializeDatabase(
 		config.Credentials.User,
 		config.Credentials.Pass,
