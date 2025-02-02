@@ -12,11 +12,14 @@ import (
 var DB *sql.DB
 
 func InitializeDatabase(user, pass, host, port, dbname string) {
+	url := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, dbname)
+	fmt.Printf("Connecting to %s...\n", url)
 	db, err := sql.Open(
 		"mysql",
-		fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, dbname),
+		url,
 	)
 	if err != nil {
+		fmt.Println("Error while connecting to database")
 		panic(err)
 	}
 	db.SetConnMaxLifetime(time.Minute * 3)
@@ -24,6 +27,7 @@ func InitializeDatabase(user, pass, host, port, dbname string) {
 	db.SetMaxIdleConns(10)
 	err = db.Ping()
 	if err != nil {
+		fmt.Println("Error while pinging database")
 		panic(err)
 	}
 	log.Println("Database was successfully connected to")

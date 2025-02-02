@@ -25,6 +25,7 @@ func main() {
 		config.Credentials.Port,
 		config.GateConfig.Dbname,
 	)
+	defer DB.Close()
 	selections := &Selections{}
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
