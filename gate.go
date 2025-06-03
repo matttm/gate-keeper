@@ -8,6 +8,7 @@ import (
 )
 
 type Gate struct {
+	Id       uint64
 	GateName string
 	GateYear string
 	Start    string
