@@ -1,11 +1,13 @@
 package main
 
 import (
+	"image/color"
 	"strconv"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
@@ -25,10 +27,13 @@ func main() {
 		config.Credentials.Port,
 		config.GateConfig.Dbname,
 	)
+	var gs *GateSpectator = nil
+	defer gs.Shutdown()
 	defer DB.Close()
 	selections := &Selections{}
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
+	panelContainer := container.NewVBox()
 
 	// create labels
 	yearLabel := widget.NewLabel("Select a year")
@@ -49,6 +54,53 @@ func main() {
 		selections.gate = ""
 		gateOptionsSelect.ClearSelected()
 		gateOptionsSelect.SetOptions(gateOptions)
+
+		// the rest of this cb is fr the table
+		gs = NewGateSpectator(&config.GateConfig, year)
+
+		table := widget.NewTable(
+			func() (int, int) {
+				return len(gates), 1 // Rows, Columns
+			},
+			func() fyne.CanvasObject {
+				// This creates the template object for each cell
+				bg := canvas.NewRectangle(color.White) // Default background for the cell
+				label := widget.NewLabel("Cell Data")  // Content of the cell
+				return container.NewStack(bg, label)   // Stack to place background behind label
+			},
+			func(id widget.TableCellID, o fyne.CanvasObject) {
+				// This function is called to update the content of each cell
+				stack := o.(*fyne.Container)
+				bg := stack.Objects[0].(*canvas.Rectangle)
+				label := stack.Objects[1].(*widget.Label)
+
+				label.SetText(gates[id.Row].GateName)
+
+				// Apply color based on the index
+				if isGateOpen(gates[id.Row]) {
+					bg.FillColor = color.RGBA{R: 0, G: 255, B: 0, A: 128}
+				} else {
+					bg.FillColor = color.RGBA{R: 255, G: 0, B: 0, A: 128} // Red with some transparency
+				}
+				bg.Refresh() // Important to refresh the rectangle after changing its color
+			},
+		)
+		go func() {
+			for _gates := range gs.gatesUpdate {
+				// TODO: do this differently
+				for _, g := range _gates {
+					// find current gate in gates and update dates
+					for _, _g := range gates {
+						if g.GateName == _g.GateName {
+							_g.Start = g.Start
+							_g.End = g.End
+						}
+					}
+				}
+				table.Refresh()
+			}
+		}()
+		panelContainer.Add(table)
 	})
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.gate = value
@@ -72,6 +124,7 @@ func main() {
 	})
 	myWindow.Resize(fyne.NewSize(500, 300))
 
-	myWindow.SetContent(container.NewVBox(yearLabel, yearOptionsSelect, gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
+	panelContainer.Add(container.NewVBox(yearLabel, yearOptionsSelect, gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
+	myWindow.SetContent(panelContainer)
 	myWindow.ShowAndRun()
 }

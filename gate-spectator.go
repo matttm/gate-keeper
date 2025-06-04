@@ -1,20 +1,31 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type GateSpectator struct {
-	ticker *time.Ticker
-	gates []Gate
+	_ticker     *time.Ticker
+	gatesUpdate chan []*Gate
+	gates       []*Gate
 }
-func NewGateSpectator() *GateSpectator {
+
+func NewGateSpectator(c *GateConfig, year int) *GateSpectator {
 	g := GateSpectator{
-		ticker: time.NewTicker(1 * time.Second), // Ticks every 1 second
+		_ticker:     time.NewTicker(1 * time.Second), // Ticks every 1 second
+		gatesUpdate: make(chan []*Gate),
 	}
-	go func () {
-	}
+	go func() {
+		fmt.Println("GateSpectator began spectating")
+		for range g._ticker.C {
+			g.gatesUpdate <- selectAllGates(c, year)
+		}
+	}()
 	return &g
 }
 
 func (g *GateSpectator) Shutdown() {
-	g.ticker.Stop()
+	g._ticker.Stop()
+	close(g.gatesUpdate)
 }

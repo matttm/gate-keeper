@@ -39,7 +39,7 @@ func selectAllYears(c *GateConfig) []string {
 }
 func selectAllGates(c *GateConfig, year int) []*Gate {
 	db := GetDatabase()
-	query := fmt.Sprintf("SELECT g.%s FROM %s.%s g WHERE g.%s = %d AND g.%s = 'Y' ORDER BY g.%s ASC;", c.GateNameKey, c.Dbname, c.TableName, c.GateYearKey, year, c.GateIsApplicableFlag, c.GateOrderKey)
+	query := fmt.Sprintf("SELECT g.%s, g.%s, g.%s FROM %s.%s g WHERE g.%s = %d AND g.%s = 'Y' ORDER BY g.%s ASC;", c.GateNameKey, c.StartKey, c.EndKey, c.Dbname, c.TableName, c.GateYearKey, year, c.GateIsApplicableFlag, c.GateOrderKey)
 	fmt.Println(query)
 	rows, err := db.Query(query)
 	if err != nil {
@@ -49,7 +49,7 @@ func selectAllGates(c *GateConfig, year int) []*Gate {
 	defer rows.Close()
 	for rows.Next() {
 		var gate = &Gate{}
-		if err := rows.Scan(&gate.GateName); err != nil {
+		if err := rows.Scan(&gate.GateName, &gate.Start, &gate.End); err != nil {
 			log.Fatal(err.Error())
 		}
 		gates = append(gates, gate)
@@ -113,4 +113,7 @@ func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string,
 		}
 	}
 	return fmt.Sprintf("UPDATE %s.%s SET %s = '%s', %s = '%s' WHERE %s = '%s' AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
+}
+func isGateOpen(g *Gate) bool {
+	return true
 }
