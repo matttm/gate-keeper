@@ -85,6 +85,7 @@ func main() {
 				bg.Refresh() // Important to refresh the rectangle after changing its color
 			},
 		)
+		table.SetColumnWidth(0, 300)
 		go func() {
 			for _gates := range gs.gatesUpdate {
 				// TODO: do this differently
@@ -98,9 +99,16 @@ func main() {
 					}
 				}
 				table.Refresh()
+				myWindow.Content().Refresh()
 			}
 		}()
+		table.Resize(fyne.NewSize(500, 500))
+		table.SetRowHeight(0, 25)
 		panelContainer.Add(table)
+		panelContainer.Resize(fyne.NewSize(500, 1000))
+		myWindow.Resize(fyne.NewSize(500, 600))
+		table.Refresh()
+		panelContainer.Refresh()
 	})
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.gate = value
