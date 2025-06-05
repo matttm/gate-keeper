@@ -49,7 +49,8 @@ To begin using this program, it rrequires one file for configuration.
 This file look like:
 
 config.json
-```{
+```
+{
 	"Credentials": {
 		"User": "USER",
 		"Pass": "xxxx",
