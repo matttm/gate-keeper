@@ -83,7 +83,7 @@ func main() {
 
 		newTable := widget.NewTable(
 			func() (int, int) {
-				return len(gates), 1 // Rows, Columns
+				return len(gates), 2 // Rows, Columns
 			},
 			func() fyne.CanvasObject {
 				// This creates the template object for each cell
@@ -97,7 +97,13 @@ func main() {
 				bg := stack.Objects[0].(*canvas.Rectangle)
 				label := stack.Objects[1].(*widget.Label)
 
-				label.SetText(gates[id.Row].GateName)
+				if id.Col == 0 {
+					label.SetText(gates[id.Row].GateName)
+				}
+				if id.Col == 1 {
+					p := RelativePosition(getGatePosition(gates[id.Row]))
+					label.SetText(getPositionOptions()[p+1])
+				}
 
 				// Apply color based on the index
 				if isGateOpen(gates[id.Row]) {
@@ -109,6 +115,7 @@ func main() {
 			},
 		)
 		newTable.SetColumnWidth(0, 300)
+		newTable.SetColumnWidth(1, 125)
 
 		// Remove old table and add the new one to the placeholder container.
 		tablePlaceholderContainer.RemoveAll()   // Clear any existing content

@@ -120,3 +120,18 @@ func isGateOpen(g *Gate) bool {
 	e, _ := time.Parse(createdFormat, g.End)
 	return s.Before(now) && e.After(now)
 }
+func getGatePosition(g *Gate) int {
+	now := time.Now()
+	s, _ := time.Parse(createdFormat, g.Start)
+	e, _ := time.Parse(createdFormat, g.End)
+	if s.Before(now) && e.After(now) {
+		return 0
+	}
+	if e.Before(now) {
+		return -1
+	}
+	if s.After(now) {
+		return 1
+	}
+	panic("Unexpected gate status")
+}
