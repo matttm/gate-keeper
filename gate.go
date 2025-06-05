@@ -115,5 +115,8 @@ func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string,
 	return fmt.Sprintf("UPDATE %s.%s SET %s = '%s', %s = '%s' WHERE %s = '%s' AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
 }
 func isGateOpen(g *Gate) bool {
-	return true
+	now := time.Now()
+	s, _ := time.Parse(createdFormat, g.Start)
+	e, _ := time.Parse(createdFormat, g.End)
+	return s.Before(now) && e.After(now)
 }
