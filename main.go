@@ -57,7 +57,7 @@ func main() {
 
 	// This container will act as the placeholder for the table.
 	// It's placed in the center of the main Border layout.
-	tablePlaceholderContainer := container.NewStack() // Use NewMax to ensure the table fills this space
+	tablePlaceholderContainer := container.NewMax() // Use NewMax to ensure the table fills this space
 
 	// This is the **main container** for the window. It uses a Border layout.
 	// The `controlsVBox` will be at the top, and the `tablePlaceholderContainer` will be in the center,
@@ -81,10 +81,7 @@ func main() {
 		gateOptionsSelect.ClearSelected()
 		gateOptionsSelect.SetOptions(gateOptions)
 
-		// the rest of this cb is fr the table
-		gs = NewGateSpectator(&config.GateConfig, year)
-
-		table := widget.NewTable(
+		newTable := widget.NewTable(
 			func() (int, int) {
 				return len(gates), 1 // Rows, Columns
 			},
@@ -111,7 +108,20 @@ func main() {
 				bg.Refresh() // Important to refresh the rectangle after changing its color
 			},
 		)
-		table.SetColumnWidth(0, 300)
+		newTable.SetColumnWidth(0, 300)
+
+		// Remove old table and add the new one to the placeholder container.
+		tablePlaceholderContainer.RemoveAll()   // Clear any existing content
+		tablePlaceholderContainer.Add(newTable) // Add the newly created table
+		tablePlaceholderContainer.Refresh()     // Refresh the placeholder container to show the new table
+
+		// --- Real-time updates with GateSpectator ---
+		// Shutdown any existing GateSpectator to avoid goroutine leaks.
+		if gs != nil {
+			gs.Shutdown()
+		}
+		gs = NewGateSpectator(&config.GateConfig, year)
+
 		go func() {
 			for _gates := range gs.gatesUpdate {
 				// TODO: do this differently
@@ -124,11 +134,9 @@ func main() {
 						}
 					}
 				}
-				table.Refresh()
-				myWindow.Content().Refresh()
+				newTable.Refresh()
 			}
 		}()
-		tablePlaceholderContainer.Add(table)
 	})
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.gate = value
@@ -157,7 +165,7 @@ func main() {
 	controlsVBox.Add(posLabel)
 	controlsVBox.Add(posOptionsSelect)
 	controlsVBox.Add(button)
-	myWindow.Resize(fyne.NewSize(500, 300))
+	myWindow.Resize(fyne.NewSize(500, 600))
 
 	// panelContainer.Add(container.NewVBox(yearLabel, yearOptionsSelect, gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
 	myWindow.SetContent(mainLayoutContainer)
