@@ -13,13 +13,14 @@ import (
 )
 
 type Selections struct {
-	gate string
-	pos  string
-	year int
+	gate string // Selected gate name
+	pos  string // Selected position (relative to gate)
+	year int    // Selected year
 }
 
 func main() {
 	config := GetConfig()
+	// Initialize the database connection using config values
 	InitializeDatabase(
 		config.Credentials.User,
 		config.Credentials.Pass,
@@ -27,48 +28,47 @@ func main() {
 		config.Credentials.Port,
 		config.GateConfig.Dbname,
 	)
-	var gs *GateSpectator = nil
+	var gs *GateSpectator = nil // Used for real-time gate updates
 
 	// Ensure cleanup functions are called when the application exits.
 	defer func() {
 		if gs != nil {
-			gs.Shutdown()
+			gs.Shutdown() // Clean up GateSpectator goroutines
 		}
-		// Closing DB here, ensures DB is closed even if GS is nil
-		DB.Close()
+		DB.Close() // Always close DB connection
 	}()
-	defer DB.Close()
-	selections := &Selections{}
+	defer DB.Close() // Redundant, but ensures DB is closed
+
+	selections := &Selections{} // Holds current user selections
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Gate Keeper")
 
-	// create labels
+	// Create labels for selection controls
 	yearLabel := widget.NewLabel("Select a year")
 	gateLabel := widget.NewLabel("Select a gate")
 	posLabel := widget.NewLabel("Position relative to gate")
-	// create select fields
+
+	// Declare select fields for year, gate, and position
 	var yearOptionsSelect *widget.Select
 	var gateOptionsSelect *widget.Select
 	var posOptionsSelect *widget.Select
 
-	// This VBox will hold all the selection controls and the button at the top of the window.
-	// We'll add the individual widgets to it after they are initialized.
+	// VBox to hold selection controls and button
 	controlsVBox := container.NewVBox()
 
-	// This container will act as the placeholder for the table.
-	// It's placed in the center of the main Border layout.
-	tablePlaceholderContainer := container.NewMax() // Use NewMax to ensure the table fills this space
+	// Placeholder for the dynamic table
+	tablePlaceholderContainer := container.NewMax() // Ensures table fills available space
 
-	// This is the **main container** for the window. It uses a Border layout.
-	// The `controlsVBox` will be at the top, and the `tablePlaceholderContainer` will be in the center,
-	// allowing the table to expand and fill the rest of the window.
+	// Main layout: controls at top, table in center
 	mainLayoutContainer := container.NewBorder(
-		controlsVBox,              // Top content: our selection controls
-		nil,                       // Bottom content (none for now)
-		nil,                       // Left content (none for now)
-		nil,                       // Right content (none for now)
-		tablePlaceholderContainer, // Center content: this will hold the table dynamically
+		controlsVBox,              // Top: selection controls
+		nil,                       // Bottom: none
+		nil,                       // Left: none
+		nil,                       // Right: none
+		tablePlaceholderContainer, // Center: table
 	)
+
+	// Year select: populates gates and table when changed
 	yearOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		year, _ := strconv.Atoi(value)
 		selections.year = year
@@ -82,18 +82,19 @@ func main() {
 		gateOptionsSelect.ClearSelected()
 		gateOptionsSelect.SetOptions(gateOptions)
 
+		// Create a new table for the selected year/gates
 		newTable := widget.NewTable(
 			func() (int, int) {
 				return len(gates), 2 // Rows, Columns
 			},
 			func() fyne.CanvasObject {
-				// This creates the template object for each cell
-				bg := canvas.NewRectangle(color.White) // Default background for the cell
-				label := widget.NewLabel("Cell Data")  // Content of the cell
-				return container.NewStack(bg, label)   // Stack to place background behind label
+				// Template for each cell: background + label
+				bg := canvas.NewRectangle(color.White)
+				label := widget.NewLabel("Cell Data")
+				return container.NewStack(bg, label)
 			},
 			func(id widget.TableCellID, o fyne.CanvasObject) {
-				// This function is called to update the content of each cell
+				// Update cell content and color
 				stack := o.(*fyne.Container)
 				bg := stack.Objects[0].(*canvas.Rectangle)
 				label := stack.Objects[1].(*widget.Label)
@@ -107,24 +108,24 @@ func main() {
 					label.SetText(positions[p+1])
 				}
 
-				// Apply color based on the index
+				// Color code: yellow if not linear, green if open, red otherwise
 				if !_isTimelineLinear {
 					bg.FillColor = color.RGBA{R: 255, G: 255, B: 0, A: 128}
 				} else if isGateOpen(gates[id.Row]) {
 					bg.FillColor = color.RGBA{R: 0, G: 255, B: 0, A: 128}
 				} else {
-					bg.FillColor = color.RGBA{R: 255, G: 0, B: 0, A: 128} // Red with some transparency
+					bg.FillColor = color.RGBA{R: 255, G: 0, B: 0, A: 128}
 				}
-				bg.Refresh() // Important to refresh the rectangle after changing its color
+				bg.Refresh()
 			},
 		)
 		newTable.SetColumnWidth(0, 300)
 		newTable.SetColumnWidth(1, 125)
 
-		// Remove old table and add the new one to the placeholder container.
-		tablePlaceholderContainer.RemoveAll()   // Clear any existing content
-		tablePlaceholderContainer.Add(newTable) // Add the newly created table
-		tablePlaceholderContainer.Refresh()     // Refresh the placeholder container to show the new table
+		// Replace old table with new one
+		tablePlaceholderContainer.RemoveAll()
+		tablePlaceholderContainer.Add(newTable)
+		tablePlaceholderContainer.Refresh()
 
 		// --- Real-time updates with GateSpectator ---
 		// Shutdown any existing GateSpectator to avoid goroutine leaks.
@@ -133,12 +134,12 @@ func main() {
 		}
 		gs = NewGateSpectator(&config.GateConfig, year)
 
+		// Listen for gate updates and refresh table
 		go func() {
 			for _gates := range gs.gatesUpdate {
 				_isTimelineLinear = isTimelineLinear(_gates)
-				// TODO: do this differently
+				// Update gate times in the current gates slice
 				for _, g := range _gates {
-					// find current gate in gates and update dates
 					for _, _g := range gates {
 						if g.GateName == _g.GateName {
 							_g.Start = g.Start
@@ -150,17 +151,25 @@ func main() {
 			}
 		}()
 	})
+
+	// Gate select: updates selection
 	gateOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.gate = value
 	})
+
+	// Position select: updates selection
 	posOptionsSelect = widget.NewSelect([]string{}, func(value string) {
 		selections.pos = value
 	})
 
+	// Populate year and position options
 	yearOptionsSelect.SetOptions(selectAllYears(&config.GateConfig))
 	posOptionsSelect.SetOptions(getPositionOptions())
+
+	// Button to set gates relative to selection
 	button := widget.NewButton("Set Gates", func() {
 		if selections.gate == "" || selections.pos == "" || selections.year == 0 {
+			// Show popup if any selection is missing
 			popupLabel := widget.NewLabel("All selections are required")
 			popup := widget.NewModalPopUp(container.NewVBox(popupLabel), fyne.CurrentApp().Driver().CanvasForObject(posOptionsSelect))
 			popup.Show()
@@ -168,8 +177,11 @@ func main() {
 			popup.Hide()
 			return
 		}
+		// Update gates in DB based on selection
 		setGatesRelativeTo(&config.GateConfig, selections.year, selections.gate, RelativePositionStr(selections.pos).Value())
 	})
+
+	// Add controls to the VBox
 	controlsVBox.Add(yearLabel)
 	controlsVBox.Add(yearOptionsSelect)
 	controlsVBox.Add(gateLabel)
@@ -177,9 +189,8 @@ func main() {
 	controlsVBox.Add(posLabel)
 	controlsVBox.Add(posOptionsSelect)
 	controlsVBox.Add(button)
-	myWindow.Resize(fyne.NewSize(500, 600))
 
-	// panelContainer.Add(container.NewVBox(yearLabel, yearOptionsSelect, gateLabel, gateOptionsSelect, posLabel, posOptionsSelect, button))
+	myWindow.Resize(fyne.NewSize(500, 600))
 	myWindow.SetContent(mainLayoutContainer)
 	myWindow.ShowAndRun()
 }
