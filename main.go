@@ -123,6 +123,7 @@ func main() {
 		newTable.SetColumnWidth(1, 125)
 
 		// Replace old table with new one
+		myWindow.Resize(fyne.NewSize(500, 600))
 		tablePlaceholderContainer.RemoveAll()
 		tablePlaceholderContainer.Add(newTable)
 		tablePlaceholderContainer.Refresh()
@@ -190,7 +191,7 @@ func main() {
 	controlsVBox.Add(posOptionsSelect)
 	controlsVBox.Add(button)
 
-	myWindow.Resize(fyne.NewSize(500, 600))
+	myWindow.Resize(fyne.NewSize(500, 320))
 	myWindow.SetContent(mainLayoutContainer)
 	myWindow.ShowAndRun()
 }
