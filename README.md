@@ -87,11 +87,13 @@ Then just choose the selects and press 'Set Gates'.
 
 
 Once you select a year, you can now see the current gate statuses and get real time updates every second
+
 <img width="509" alt="Screenshot 2025-06-08 at 2 14 05 PM" src="https://github.com/user-attachments/assets/cdcb735b-8ea8-4abf-bdcf-401d3399dad8" />
 <img width="504" alt="Screenshot 2025-06-08 at 2 10 06 PM" src="https://github.com/user-attachments/assets/322c8f5c-90fa-4a20-868a-34543570fb74" />
 
 
-There is now also a gate health check, which basically causes all the gates to turn yellow, indicating that they are out of order compared to the sword order in the database.
+There is now also a gate health check, which basically causes all the gates to turn yellow, indicating that they are out of order compared to the sort order in the database.
+
 <img width="522" alt="Screenshot 2025-06-08 at 2 08 52 PM" src="https://github.com/user-attachments/assets/49c5c40d-c8be-4901-98a3-ccc27aa4f8d7" />
 
 
