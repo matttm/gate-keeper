@@ -103,7 +103,8 @@ func main() {
 				}
 				if id.Col == 1 {
 					p := RelativePosition(getGatePosition(gates[id.Row]))
-					label.SetText(getPositionOptions()[p+1])
+					positions := []string{"Past", "Open", "Future"}
+					label.SetText(positions[p+1])
 				}
 
 				// Apply color based on the index
