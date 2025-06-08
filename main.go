@@ -73,6 +73,7 @@ func main() {
 		year, _ := strconv.Atoi(value)
 		selections.year = year
 		gates := selectAllGates(&config.GateConfig, selections.year)
+		_isTimelineLinear := isTimelineLinear(gates)
 		var gateOptions []string
 		for _, g := range gates {
 			gateOptions = append(gateOptions, g.GateName)
@@ -106,7 +107,9 @@ func main() {
 				}
 
 				// Apply color based on the index
-				if isGateOpen(gates[id.Row]) {
+				if !_isTimelineLinear {
+					bg.FillColor = color.RGBA{R: 255, G: 255, B: 0, A: 128}
+				} else if isGateOpen(gates[id.Row]) {
 					bg.FillColor = color.RGBA{R: 0, G: 255, B: 0, A: 128}
 				} else {
 					bg.FillColor = color.RGBA{R: 255, G: 0, B: 0, A: 128} // Red with some transparency
@@ -131,6 +134,7 @@ func main() {
 
 		go func() {
 			for _gates := range gs.gatesUpdate {
+				_isTimelineLinear = isTimelineLinear(_gates)
 				// TODO: do this differently
 				for _, g := range _gates {
 					// find current gate in gates and update dates

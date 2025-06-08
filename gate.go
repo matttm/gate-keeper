@@ -114,6 +114,20 @@ func _createQueryString(c *GateConfig, now time.Time, year int, pastGate string,
 	}
 	return fmt.Sprintf("UPDATE %s.%s SET %s = '%s', %s = '%s' WHERE %s = '%s' AND %s = %d;", c.Dbname, c.TableName, c.StartKey, start, c.EndKey, end, c.GateNameKey, pastGate, c.GateYearKey, year)
 }
+func isTimelineLinear(gates []*Gate) bool {
+	// gates are assumed to be in their expected order,
+	// so we'll check their timestamps to ensure the same order
+	for i := 1; i < len(gates); i++ {
+		// checking that current gate's start date is
+		// after previous gate's end date
+		currentStart, _ := time.Parse(createdFormat, gates[i].Start)
+		previousEnd, _ := time.Parse(createdFormat, gates[i-1].End)
+		if !currentStart.After(previousEnd) {
+			return false
+		}
+	}
+	return true
+}
 func isGateOpen(g *Gate) bool {
 	now := time.Now()
 	s, _ := time.Parse(createdFormat, g.Start)
