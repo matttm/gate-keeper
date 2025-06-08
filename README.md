@@ -83,14 +83,17 @@ and run the binary:
 ```
 Then just choose the selects and press 'Set Gates'.
 
-<img width="568" alt="Screenshot 2025-01-19 at 1 45 29 PM" src="https://github.com/user-attachments/assets/83ecfe93-1c49-437a-8bec-5c73b3efbb67" />
+<img width="519" alt="Screenshot 2025-06-08 at 2 08 19 PM" src="https://github.com/user-attachments/assets/9b1a2f84-7216-49d6-8683-57eb815d72c7" />
+
 
 Once you select a year, you can now see the current gate statuses and get real time updates every second
-<img width="751" alt="Screenshot 2025-06-08 at 9 09 20 AM" src="https://github.com/user-attachments/assets/632aac03-3187-4ae0-97c0-8ceab281d7d2" />
-<img width="838" alt="Screenshot 2025-06-08 at 9 09 01 AM" src="https://github.com/user-attachments/assets/2136115f-d56f-4a4f-8809-9072a4144485" />
+<img width="509" alt="Screenshot 2025-06-08 at 2 14 05 PM" src="https://github.com/user-attachments/assets/cdcb735b-8ea8-4abf-bdcf-401d3399dad8" />
+<img width="504" alt="Screenshot 2025-06-08 at 2 10 06 PM" src="https://github.com/user-attachments/assets/322c8f5c-90fa-4a20-868a-34543570fb74" />
+
 
 There is now also a gate health check, which basically causes all the gates to turn yellow, indicating that they are out of order compared to the sword order in the database.
-<img width="775" alt="Screenshot 2025-06-08 at 11 17 31 AM" src="https://github.com/user-attachments/assets/d4f8e195-69d4-428d-b887-8b56c3920d19" />
+<img width="522" alt="Screenshot 2025-06-08 at 2 08 52 PM" src="https://github.com/user-attachments/assets/49c5c40d-c8be-4901-98a3-ccc27aa4f8d7" />
+
 
 
 .
