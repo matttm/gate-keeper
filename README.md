@@ -71,9 +71,11 @@ config.json
 
 ```
 
-Once you have this file in your working directory and assuming you've already built from source
+Once you have this file in your working directory, let's download the dependencies and build this thing.
 ```
-source .env
+go mod download
+
+go build
 ```
 and run the binary:
 ```
@@ -82,8 +84,19 @@ and run the binary:
 Then just choose the selects and press 'Set Gates'.
 
 <img width="568" alt="Screenshot 2025-01-19 at 1 45 29 PM" src="https://github.com/user-attachments/assets/83ecfe93-1c49-437a-8bec-5c73b3efbb67" />
-.
 
+Once you select a year, you can now see the current gate statuses and get real time updates every second
+<img width="751" alt="Screenshot 2025-06-08 at 9 09 20 AM" src="https://github.com/user-attachments/assets/632aac03-3187-4ae0-97c0-8ceab281d7d2" />
+<img width="838" alt="Screenshot 2025-06-08 at 9 09 01 AM" src="https://github.com/user-attachments/assets/2136115f-d56f-4a4f-8809-9072a4144485" />
+
+There is now also a gate health check, which basically causes all the gates to turn yellow, indicating that they are out of order compared to the sword order in the database.
+<img width="775" alt="Screenshot 2025-06-08 at 11 17 31 AM" src="https://github.com/user-attachments/assets/d4f8e195-69d4-428d-b887-8b56c3920d19" />
+
+
+.
+## Changelog
+- 06/08/2025 - gate status table with a gate health check
+- 
 ## Authors
 
 -   Matt Maloney : matttm
