@@ -1,3 +1,4 @@
 gate-keeper
 .env*
 config.json*
+.DS_*
