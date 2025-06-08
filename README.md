@@ -101,7 +101,7 @@ There is now also a gate health check, which basically causes all the gates to t
 .
 ## Changelog
 - 06/08/2025 - gate status table with a gate health check
-- 
+
 ## Authors
 
 -   Matt Maloney : matttm
