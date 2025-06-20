@@ -1,0 +1,2610 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="774" onload="init(evt)" viewBox="0 0 1200 774" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+		if (currentSearchTerm === null) return;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="774.0" fill="url(#background)"  />
+<text id="title" x="600.00" y="24" >Flame Graph</text>
+<text id="details" x="10.00" y="757" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1090.00" y="24" >Search</text>
+<text id="ignorecase" x="1174.00" y="24" >ic</text>
+<text id="matched" x="1090.00" y="757" > </text>
+<g id="frames">
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails (5 samples, 2.20%)</title><rect x="607.8" y="325" width="26.0" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="610.80" y="335.5" >f..</text>
+</g>
+<g >
+<title>runtime.wakep (12 samples, 5.29%)</title><rect x="1127.6" y="661" width="62.4" height="15.0" fill="rgb(216,54,13)" rx="2" ry="2" />
+<text  x="1130.62" y="671.5" >runtim..</text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="15.2" y="341" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="18.20" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle (12 samples, 5.29%)</title><rect x="509.0" y="309" width="62.4" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="512.03" y="319.5" >fyne.i..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.(*Container).MinSize (1 samples, 0.44%)</title><rect x="477.8" y="437" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="480.84" y="447.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawGradient (1 samples, 0.44%)</title><rect x="633.8" y="357" width="5.2" height="15.0" fill="rgb(206,5,1)" rx="2" ry="2" />
+<text  x="636.79" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).Paint (4 samples, 1.76%)</title><rect x="488.2" y="309" width="20.8" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="491.24" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="581.8" y="357" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="584.81" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.semasleep (16 samples, 7.05%)</title><rect x="971.7" y="629" width="83.1" height="15.0" fill="rgb(234,134,32)" rx="2" ry="2" />
+<text  x="974.67" y="639.5" >runtime.s..</text>
+</g>
+<g >
+<title>runtime.semawakeup (8 samples, 3.52%)</title><rect x="1054.8" y="597" width="41.6" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1057.85" y="607.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (7 samples, 3.08%)</title><rect x="597.4" y="421" width="36.4" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="600.40" y="431.5" >fyn..</text>
+</g>
+<g >
+<title>runtime.exitsyscall (1 samples, 0.44%)</title><rect x="566.2" y="245" width="5.2" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="569.21" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).updateRowBounds.func1 (1 samples, 0.44%)</title><rect x="30.8" y="501" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="33.79" y="511.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.PollEvents (37 samples, 16.30%)</title><rect x="212.7" y="613" width="192.4" height="15.0" fill="rgb(212,32,7)" rx="2" ry="2" />
+<text  x="215.73" y="623.5" >github.com/go-gl/glfw/v3...</text>
+</g>
+<g >
+<title>24 (1 samples, 0.44%)</title><rect x="119.2" y="693" width="5.2" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="122.16" y="703.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="425.9" y="325" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="428.86" y="335.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_cond_signal (8 samples, 3.52%)</title><rect x="1054.8" y="581" width="41.6" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1057.85" y="591.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="420.7" y="373" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="423.66" y="383.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).ShowAndRun (131 samples, 57.71%)</title><rect x="212.7" y="677" width="681.0" height="15.0" fill="rgb(251,213,51)" rx="2" ry="2" />
+<text  x="215.73" y="687.5" >fyne.io/fyne/v2/internal/driver/glfw.(*window).ShowAndRun</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/widget.(*SimpleRenderer).MinSize (2 samples, 0.88%)</title><rect x="441.5" y="293" width="10.4" height="15.0" fill="rgb(253,221,52)" rx="2" ry="2" />
+<text  x="444.45" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.startm (8 samples, 3.52%)</title><rect x="1054.8" y="629" width="41.6" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="1057.85" y="639.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (3 samples, 1.32%)</title><rect x="420.7" y="389" width="15.6" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="423.66" y="399.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).MinSize (1 samples, 0.44%)</title><rect x="431.1" y="293" width="5.2" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="434.06" y="303.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.GetAttribLocation (1 samples, 0.44%)</title><rect x="488.2" y="229" width="5.2" height="15.0" fill="rgb(222,82,19)" rx="2" ry="2" />
+<text  x="491.24" y="239.5" ></text>
+</g>
+<g >
+<title>net.(*netFD).Write (1 samples, 0.44%)</title><rect x="20.4" y="469" width="5.2" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="23.40" y="479.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="36.0" y="501" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="38.99" y="511.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/shaping.WrapConfig.WithTruncator (1 samples, 0.44%)</title><rect x="15.2" y="549" width="5.2" height="15.0" fill="rgb(235,140,33)" rx="2" ry="2" />
+<text  x="18.20" y="559.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.MeasureText (2 samples, 0.88%)</title><rect x="441.5" y="229" width="10.4" height="15.0" fill="rgb(240,163,39)" rx="2" ry="2" />
+<text  x="444.45" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (32 samples, 14.10%)</title><rect x="488.2" y="485" width="166.4" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="495.5" >fyne.io/fyne/v2/inter..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func1 (13 samples, 5.73%)</title><rect x="509.0" y="373" width="67.6" height="15.0" fill="rgb(206,8,2)" rx="2" ry="2" />
+<text  x="512.03" y="383.5" >fyne.io..</text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="613.0" y="261" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="616.00" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="462.2" y="373" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="465.25" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.(*itabTableType).find (1 samples, 0.44%)</title><rect x="576.6" y="309" width="5.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="579.61" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/canvas.NewRectangle (1 samples, 0.44%)</title><rect x="36.0" y="629" width="5.2" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="38.99" y="639.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (2 samples, 0.88%)</title><rect x="462.2" y="437" width="10.4" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="465.25" y="447.5" ></text>
+</g>
+<g >
+<title>212 (1 samples, 0.44%)</title><rect x="108.8" y="693" width="5.2" height="15.0" fill="rgb(251,211,50)" rx="2" ry="2" />
+<text  x="111.77" y="703.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwSetWindowSize (1 samples, 0.44%)</title><rect x="888.5" y="565" width="5.2" height="15.0" fill="rgb(213,37,9)" rx="2" ry="2" />
+<text  x="891.50" y="575.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/layout.vBoxLayout.MinSize (1 samples, 0.44%)</title><rect x="457.0" y="341" width="5.2" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="460.05" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="581.8" y="309" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="584.81" y="319.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays (2 samples, 0.88%)</title><rect x="498.6" y="229" width="10.4" height="15.0" fill="rgb(240,163,38)" rx="2" ry="2" />
+<text  x="501.63" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="431.1" y="261" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="434.06" y="271.5" ></text>
+</g>
+<g >
+<title>main.NewGateSpectator.func1 (2 samples, 0.88%)</title><rect x="20.4" y="709" width="10.4" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="23.40" y="719.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="457.0" y="229" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="460.05" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/widget.(*Base).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="501" width="5.2" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="511.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="581.8" y="277" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="584.81" y="287.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DrawArrays (1 samples, 0.44%)</title><rect x="644.2" y="341" width="5.2" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="647.19" y="351.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DeleteBuffers (1 samples, 0.44%)</title><rect x="529.8" y="277" width="5.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="532.82" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.shapeCallback (1 samples, 0.44%)</title><rect x="493.4" y="181" width="5.2" height="15.0" fill="rgb(215,47,11)" rx="2" ry="2" />
+<text  x="496.44" y="191.5" ></text>
+</g>
+<g >
+<title>runtime.concatstrings (1 samples, 0.44%)</title><rect x="639.0" y="309" width="5.2" height="15.0" fill="rgb(220,73,17)" rx="2" ry="2" />
+<text  x="641.99" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).updateRowBounds.func1 (1 samples, 0.44%)</title><rect x="15.2" y="581" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="18.20" y="591.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="457.0" y="197" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="460.05" y="207.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/canvas.(*Text).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="469" width="5.2" height="15.0" fill="rgb(209,20,4)" rx="2" ry="2" />
+<text  x="13.00" y="479.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).processResized (1 samples, 0.44%)</title><rect x="888.5" y="421" width="5.2" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="891.50" y="431.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="581.8" y="293" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="584.81" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="462.2" y="293" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="465.25" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="472.6" y="213" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="475.64" y="223.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.GetUniformLocation (1 samples, 0.44%)</title><rect x="561.0" y="293" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="564.01" y="303.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowBufferData (2 samples, 0.88%)</title><rect x="587.0" y="261" width="10.4" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="590.00" y="271.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwSwapBuffers (1 samples, 0.44%)</title><rect x="888.5" y="309" width="5.2" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="891.50" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_cond_signal (1 samples, 0.44%)</title><rect x="1122.4" y="645" width="5.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1125.42" y="655.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="571.4" y="149" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="574.41" y="159.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).RenderedTextSize (2 samples, 0.88%)</title><rect x="441.5" y="213" width="10.4" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="444.45" y="223.5" ></text>
+</g>
+<g >
+<title>runtime.convTnoptr (1 samples, 0.44%)</title><rect x="451.9" y="325" width="5.1" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="454.85" y="335.5" ></text>
+</g>
+<g >
+<title>database/sql.(*DB).query (1 samples, 0.44%)</title><rect x="20.4" y="629" width="5.2" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="23.40" y="639.5" ></text>
+</g>
+<g >
+<title>runtime.notewakeup (12 samples, 5.29%)</title><rect x="1127.6" y="629" width="62.4" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1130.62" y="639.5" >runtim..</text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="519.4" y="229" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="522.43" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.(*Container).MinSize (1 samples, 0.44%)</title><rect x="457.0" y="357" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="460.05" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/app.(*fyneApp).Run (131 samples, 57.71%)</title><rect x="212.7" y="661" width="681.0" height="15.0" fill="rgb(238,154,37)" rx="2" ry="2" />
+<text  x="215.73" y="671.5" >fyne.io/fyne/v2/app.(*fyneApp).Run</text>
+</g>
+<g >
+<title>main.main.func3.3 (1 samples, 0.44%)</title><rect x="30.8" y="613" width="5.2" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="33.79" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).processMouseMoved.(*window).mouseIn.func7 (1 samples, 0.44%)</title><rect x="15.2" y="693" width="5.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="18.20" y="703.5" ></text>
+</g>
+<g >
+<title>runtime.memhash64 (1 samples, 0.44%)</title><rect x="477.8" y="277" width="5.2" height="15.0" fill="rgb(220,72,17)" rx="2" ry="2" />
+<text  x="480.84" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.load (1 samples, 0.44%)</title><rect x="607.8" y="293" width="5.2" height="15.0" fill="rgb(237,150,36)" rx="2" ry="2" />
+<text  x="610.80" y="303.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject (7 samples, 3.08%)</title><rect x="597.4" y="357" width="36.4" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="600.40" y="367.5" >fyn..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (28 samples, 12.33%)</title><rect x="488.2" y="437" width="145.6" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="447.5" >fyne.io/fyne/v2/in..</text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="415.5" y="181" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="418.46" y="191.5" ></text>
+</g>
+<g >
+<title>database/sql.(*DB).retry (1 samples, 0.44%)</title><rect x="20.4" y="661" width="5.2" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="23.40" y="671.5" ></text>
+</g>
+<g >
+<title>image.(*NRGBA).At (1 samples, 0.44%)</title><rect x="493.4" y="85" width="5.2" height="15.0" fill="rgb(240,161,38)" rx="2" ry="2" />
+<text  x="496.44" y="95.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).Refresh (2 samples, 0.88%)</title><rect x="30.8" y="693" width="10.4" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="33.79" y="703.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="431.1" y="245" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="434.06" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (4 samples, 1.76%)</title><rect x="415.5" y="405" width="20.8" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="415.5" ></text>
+</g>
+<g >
+<title>internal/runtime/atomic.(*UnsafePointer).StoreNoWB (1 samples, 0.44%)</title><rect x="431.1" y="165" width="5.2" height="15.0" fill="rgb(251,213,50)" rx="2" ry="2" />
+<text  x="434.06" y="175.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="431.1" y="325" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="434.06" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*coreContext).BufferData.BufferData.func1 (1 samples, 0.44%)</title><rect x="519.4" y="261" width="5.2" height="15.0" fill="rgb(250,207,49)" rx="2" ry="2" />
+<text  x="522.43" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.convT (1 samples, 0.44%)</title><rect x="571.4" y="165" width="5.2" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="574.41" y="175.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_mutex_lock (1 samples, 0.44%)</title><rect x="1049.6" y="613" width="5.2" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="1052.65" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func2 (1 samples, 0.44%)</title><rect x="576.6" y="357" width="5.2" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="579.61" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="436.3" y="293" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="439.26" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_mutex_unlock (1 samples, 0.44%)</title><rect x="1112.0" y="613" width="5.2" height="15.0" fill="rgb(247,193,46)" rx="2" ry="2" />
+<text  x="1115.03" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func1 (3 samples, 1.32%)</title><rect x="633.8" y="405" width="15.6" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="636.79" y="415.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="571.4" y="85" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="574.41" y="95.5" ></text>
+</g>
+<g >
+<title>runtime.concatstring2 (1 samples, 0.44%)</title><rect x="639.0" y="325" width="5.2" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="641.99" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).platformResize (1 samples, 0.44%)</title><rect x="888.5" y="405" width="5.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="891.50" y="415.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="431.1" y="213" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="434.06" y="223.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="30.8" y="389" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="33.79" y="399.5" ></text>
+</g>
+<g >
+<title>github.com/go-sql-driver/mysql.(*mysqlConn).query (1 samples, 0.44%)</title><rect x="20.4" y="533" width="5.2" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="23.40" y="543.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree (32 samples, 14.10%)</title><rect x="488.2" y="517" width="166.4" height="15.0" fill="rgb(235,140,33)" rx="2" ry="2" />
+<text  x="491.24" y="527.5" >fyne.io/fyne/v2/inter..</text>
+</g>
+<g >
+<title>runtime.findRunnable (14 samples, 6.17%)</title><rect x="898.9" y="661" width="72.8" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="901.90" y="671.5" >runtime...</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).charMinSize (2 samples, 0.88%)</title><rect x="441.5" y="245" width="10.4" height="15.0" fill="rgb(214,41,9)" rx="2" ry="2" />
+<text  x="444.45" y="255.5" ></text>
+</g>
+<g >
+<title>github.com/srwiley/rasterx.(*ScannerGV).Draw (1 samples, 0.44%)</title><rect x="493.4" y="133" width="5.2" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="496.44" y="143.5" ></text>
+</g>
+<g >
+<title>time.now (1 samples, 0.44%)</title><rect x="425.9" y="293" width="5.2" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="428.86" y="303.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="581.8" y="373" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="584.81" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="15.2" y="373" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="18.20" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.typehash (1 samples, 0.44%)</title><rect x="477.8" y="293" width="5.2" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="480.84" y="303.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Label).MinSize (1 samples, 0.44%)</title><rect x="431.1" y="341" width="5.2" height="15.0" fill="rgb(226,99,23)" rx="2" ry="2" />
+<text  x="434.06" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (18 samples, 7.93%)</title><rect x="488.2" y="405" width="93.6" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="415.5" >fyne.io/fyn..</text>
+</g>
+<g >
+<title>github.com/go-sql-driver/mysql.(*mysqlConn).writePacket (1 samples, 0.44%)</title><rect x="20.4" y="501" width="5.2" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="23.40" y="511.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.(*Container).MinSize (4 samples, 1.76%)</title><rect x="436.3" y="357" width="20.7" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="439.26" y="367.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays (1 samples, 0.44%)</title><rect x="644.2" y="325" width="5.2" height="15.0" fill="rgb(240,163,38)" rx="2" ry="2" />
+<text  x="647.19" y="335.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowGetAttribLocation (1 samples, 0.44%)</title><rect x="488.2" y="213" width="5.2" height="15.0" fill="rgb(249,203,48)" rx="2" ry="2" />
+<text  x="491.24" y="223.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (2 samples, 0.88%)</title><rect x="441.5" y="261" width="10.4" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="444.45" y="271.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Select).Tapped (1 samples, 0.44%)</title><rect x="10.0" y="677" width="5.2" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="13.00" y="687.5" ></text>
+</g>
+<g >
+<title>runtime.rawstring (2 samples, 0.88%)</title><rect x="509.0" y="245" width="10.4" height="15.0" fill="rgb(214,44,10)" rx="2" ry="2" />
+<text  x="512.03" y="255.5" ></text>
+</g>
+<g >
+<title>runtime.duffcopy (1 samples, 0.44%)</title><rect x="483.0" y="485" width="5.2" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="486.04" y="495.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*tableCellsRenderer).refreshForID (1 samples, 0.44%)</title><rect x="30.8" y="629" width="5.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="33.79" y="639.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="15.2" y="277" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="18.20" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).Paint (7 samples, 3.08%)</title><rect x="597.4" y="373" width="36.4" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="600.40" y="383.5" >fyn..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.RenderedTextSize (1 samples, 0.44%)</title><rect x="10.0" y="437" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="13.00" y="447.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (2 samples, 0.88%)</title><rect x="441.5" y="69" width="10.4" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="444.45" y="79.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (1 samples, 0.44%)</title><rect x="415.5" y="389" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="399.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.DrawString.func1 (1 samples, 0.44%)</title><rect x="493.4" y="165" width="5.2" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="496.44" y="175.5" ></text>
+</g>
+<g >
+<title>all (227 samples, 100%)</title><rect x="10.0" y="725" width="1180.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="735.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="618.2" y="261" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="621.19" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="36.0" y="533" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="38.99" y="543.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject (13 samples, 5.73%)</title><rect x="509.0" y="325" width="67.6" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="512.03" y="335.5" >fyne.io..</text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.NewFont (1 samples, 0.44%)</title><rect x="571.4" y="181" width="5.2" height="15.0" fill="rgb(226,97,23)" rx="2" ry="2" />
+<text  x="574.41" y="191.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func1 (2 samples, 0.88%)</title><rect x="587.0" y="373" width="10.4" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="590.00" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="30.8" y="437" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="33.79" y="447.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Menu).CreateRenderer (1 samples, 0.44%)</title><rect x="10.0" y="581" width="5.2" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="13.00" y="591.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="529.8" y="245" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="532.82" y="255.5" ></text>
+</g>
+<g >
+<title>runtime.ready (12 samples, 5.29%)</title><rect x="1127.6" y="677" width="62.4" height="15.0" fill="rgb(236,143,34)" rx="2" ry="2" />
+<text  x="1130.62" y="687.5" >runtim..</text>
+</g>
+<g >
+<title>runtime.entersyscall (1 samples, 0.44%)</title><rect x="524.6" y="229" width="5.2" height="15.0" fill="rgb(249,203,48)" rx="2" ry="2" />
+<text  x="527.63" y="239.5" ></text>
+</g>
+<g >
+<title>internal/runtime/atomic.(*Uint32).CompareAndSwap (1 samples, 0.44%)</title><rect x="566.2" y="229" width="5.2" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="569.21" y="239.5" ></text>
+</g>
+<g >
+<title>internal/reflectlite.Swapper (1 samples, 0.44%)</title><rect x="15.2" y="405" width="5.2" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="18.20" y="415.5" ></text>
+</g>
+<g >
+<title>runtime.netpoll (8 samples, 3.52%)</title><rect x="930.1" y="645" width="41.6" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="933.09" y="655.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).RunWithContext (1 samples, 0.44%)</title><rect x="888.5" y="373" width="5.2" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="891.50" y="383.5" ></text>
+</g>
+<g >
+<title>time.Time.Add (1 samples, 0.44%)</title><rect x="649.4" y="405" width="5.2" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="652.38" y="415.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.func1 (91 samples, 40.09%)</title><rect x="415.5" y="565" width="473.0" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="418.46" y="575.5" >fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.f..</text>
+</g>
+<g >
+<title>database/sql.(*DB).Query (1 samples, 0.44%)</title><rect x="20.4" y="693" width="5.2" height="15.0" fill="rgb(231,123,29)" rx="2" ry="2" />
+<text  x="23.40" y="703.5" ></text>
+</g>
+<g >
+<title>main.main.func3.4 (2 samples, 0.88%)</title><rect x="30.8" y="709" width="10.4" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="33.79" y="719.5" ></text>
+</g>
+<g >
+<title>syscall.syscall (1 samples, 0.44%)</title><rect x="20.4" y="421" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="23.40" y="431.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="477.8" y="357" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="480.84" y="367.5" ></text>
+</g>
+<g >
+<title>time.Now (1 samples, 0.44%)</title><rect x="425.9" y="309" width="5.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="428.86" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (9 samples, 3.96%)</title><rect x="415.5" y="453" width="46.7" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="463.5" >fyne..</text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="30.8" y="357" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="33.79" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*selectRenderer).updateLabel (1 samples, 0.44%)</title><rect x="15.2" y="629" width="5.2" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="18.20" y="639.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_cond_signal (12 samples, 5.29%)</title><rect x="1127.6" y="597" width="62.4" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1130.62" y="607.5" >runtim..</text>
+</g>
+<g >
+<title>runtime.cgocallbackg (1 samples, 0.44%)</title><rect x="888.5" y="501" width="5.2" height="15.0" fill="rgb(240,161,38)" rx="2" ry="2" />
+<text  x="891.50" y="511.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Select).MinSize (1 samples, 0.44%)</title><rect x="477.8" y="373" width="5.2" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="480.84" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="467.4" y="357" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="470.44" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).Refresh (1 samples, 0.44%)</title><rect x="30.8" y="565" width="5.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="33.79" y="575.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow (1 samples, 0.44%)</title><rect x="888.5" y="389" width="5.2" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="891.50" y="399.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).Resize.func1 (1 samples, 0.44%)</title><rect x="888.5" y="613" width="5.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="891.50" y="623.5" ></text>
+</g>
+<g >
+<title>runtime.semasleep (6 samples, 2.64%)</title><rect x="898.9" y="613" width="31.2" height="15.0" fill="rgb(234,134,32)" rx="2" ry="2" />
+<text  x="901.90" y="623.5" >ru..</text>
+</g>
+<g >
+<title>runtime._ExternalCode (33 samples, 14.54%)</title><rect x="41.2" y="709" width="171.5" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="44.19" y="719.5" >runtime._ExternalCode</text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="462.2" y="277" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="465.25" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="649.4" y="421" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="652.38" y="431.5" ></text>
+</g>
+<g >
+<title>runtime.startlockedm (4 samples, 1.76%)</title><rect x="1096.4" y="661" width="20.8" height="15.0" fill="rgb(226,99,23)" rx="2" ry="2" />
+<text  x="1099.43" y="671.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="30.8" y="405" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="33.79" y="415.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawText (5 samples, 2.20%)</title><rect x="607.8" y="341" width="26.0" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="610.80" y="351.5" >f..</text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="15.2" y="325" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="18.20" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="415.5" y="309" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="418.46" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.GetFontMetrics (2 samples, 0.88%)</title><rect x="441.5" y="181" width="10.4" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="444.45" y="191.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="467.4" y="293" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="470.44" y="303.5" ></text>
+</g>
+<g >
+<title>123 (2 samples, 0.88%)</title><rect x="98.4" y="693" width="10.4" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="101.37" y="703.5" ></text>
+</g>
+<g >
+<title>runtime.resetspinning (8 samples, 3.52%)</title><rect x="1054.8" y="661" width="41.6" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="1057.85" y="671.5" >run..</text>
+</g>
+<g >
+<title>22 (1 samples, 0.44%)</title><rect x="114.0" y="693" width="5.2" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="116.96" y="703.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DrawArrays (2 samples, 0.88%)</title><rect x="623.4" y="309" width="10.4" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="626.39" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (2 samples, 0.88%)</title><rect x="425.9" y="357" width="10.4" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="428.86" y="367.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwPollEvents (37 samples, 16.30%)</title><rect x="212.7" y="597" width="192.4" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="215.73" y="607.5" >github.com/go-gl/glfw/v3...</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/widget.(*SimpleRenderer).Refresh (1 samples, 0.44%)</title><rect x="30.8" y="549" width="5.2" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="33.79" y="559.5" ></text>
+</g>
+<g >
+<title>runtime.cgocallback (1 samples, 0.44%)</title><rect x="888.5" y="517" width="5.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="891.50" y="527.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (2 samples, 0.88%)</title><rect x="441.5" y="101" width="10.4" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="444.45" y="111.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails (2 samples, 0.88%)</title><rect x="597.4" y="325" width="10.4" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="600.40" y="335.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.Clear (1 samples, 0.44%)</title><rect x="654.6" y="517" width="5.2" height="15.0" fill="rgb(233,129,31)" rx="2" ry="2" />
+<text  x="657.58" y="527.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="649.4" y="437" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="652.38" y="447.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (4 samples, 1.76%)</title><rect x="436.3" y="373" width="20.7" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="439.26" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.mapaccess2 (1 samples, 0.44%)</title><rect x="607.8" y="261" width="5.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="610.80" y="271.5" ></text>
+</g>
+<g >
+<title>syscall.Write (1 samples, 0.44%)</title><rect x="25.6" y="645" width="5.2" height="15.0" fill="rgb(208,18,4)" rx="2" ry="2" />
+<text  x="28.59" y="655.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="415.5" y="197" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="418.46" y="207.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DrawArrays (5 samples, 2.20%)</title><rect x="535.0" y="293" width="26.0" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="538.02" y="303.5" >g..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).defineVertexArray (1 samples, 0.44%)</title><rect x="488.2" y="245" width="5.2" height="15.0" fill="rgb(221,74,17)" rx="2" ry="2" />
+<text  x="491.24" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Label).SetText (1 samples, 0.44%)</title><rect x="30.8" y="597" width="5.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="33.79" y="607.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="431.1" y="277" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="434.06" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).mouseClickedHandleTapDoubleTap.func1 (1 samples, 0.44%)</title><rect x="10.0" y="693" width="5.2" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="13.00" y="703.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (14 samples, 6.17%)</title><rect x="509.0" y="389" width="72.8" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="512.03" y="399.5" >fyne.io/..</text>
+</g>
+<g >
+<title>runtime.cgocall (2 samples, 0.88%)</title><rect x="498.6" y="213" width="10.4" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="501.63" y="223.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="457.0" y="261" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="460.05" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.stoplockedm (1 samples, 0.44%)</title><rect x="1117.2" y="661" width="5.2" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="1120.22" y="671.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).rectCoords (1 samples, 0.44%)</title><rect x="618.2" y="309" width="5.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="621.19" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.notesleep (6 samples, 2.64%)</title><rect x="898.9" y="629" width="31.2" height="15.0" fill="rgb(230,119,28)" rx="2" ry="2" />
+<text  x="901.90" y="639.5" >ru..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).pollEvents (37 samples, 16.30%)</title><rect x="212.7" y="629" width="192.4" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="215.73" y="639.5" >fyne.io/fyne/v2/internal/..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.GetTextTexture (1 samples, 0.44%)</title><rect x="607.8" y="309" width="5.2" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="610.80" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.DrawString (1 samples, 0.44%)</title><rect x="493.4" y="213" width="5.2" height="15.0" fill="rgb(230,117,28)" rx="2" ry="2" />
+<text  x="496.44" y="223.5" ></text>
+</g>
+<g >
+<title>runtime.notewakeup (8 samples, 3.52%)</title><rect x="1054.8" y="613" width="41.6" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1057.85" y="623.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (2 samples, 0.88%)</title><rect x="425.9" y="373" width="10.4" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="428.86" y="383.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (1 samples, 0.44%)</title><rect x="415.5" y="341" width="5.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="418.46" y="351.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DrawArrays (1 samples, 0.44%)</title><rect x="602.6" y="309" width="5.2" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="605.60" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (4 samples, 1.76%)</title><rect x="488.2" y="389" width="20.8" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="399.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="467.4" y="325" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="470.44" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (1 samples, 0.44%)</title><rect x="457.0" y="437" width="5.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="460.05" y="447.5" ></text>
+</g>
+<g >
+<title>runtime.systemstack_switch (1 samples, 0.44%)</title><rect x="888.5" y="533" width="5.2" height="15.0" fill="rgb(242,170,40)" rx="2" ry="2" />
+<text  x="891.50" y="543.5" ></text>
+</g>
+<g >
+<title>database/sql.(*DB).queryDC.func1 (1 samples, 0.44%)</title><rect x="20.4" y="581" width="5.2" height="15.0" fill="rgb(224,89,21)" rx="2" ry="2" />
+<text  x="23.40" y="591.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.SetFontMetrics (1 samples, 0.44%)</title><rect x="10.0" y="421" width="5.2" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="13.00" y="431.5" ></text>
+</g>
+<g >
+<title>112 (8 samples, 3.52%)</title><rect x="56.8" y="693" width="41.6" height="15.0" fill="rgb(207,11,2)" rx="2" ry="2" />
+<text  x="59.78" y="703.5" >112</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).Paint (2 samples, 0.88%)</title><rect x="587.0" y="357" width="10.4" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="590.00" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject (3 samples, 1.32%)</title><rect x="633.8" y="373" width="15.6" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="636.79" y="383.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.WalkVisibleObjectTree (32 samples, 14.10%)</title><rect x="488.2" y="501" width="166.4" height="15.0" fill="rgb(224,87,20)" rx="2" ry="2" />
+<text  x="491.24" y="511.5" >fyne.io/fyne/v2/inter..</text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="462.2" y="261" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="465.25" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.cgocallbackg1 (1 samples, 0.44%)</title><rect x="888.5" y="485" width="5.2" height="15.0" fill="rgb(223,85,20)" rx="2" ry="2" />
+<text  x="891.50" y="495.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="36.0" y="549" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="38.99" y="559.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (2 samples, 0.88%)</title><rect x="462.2" y="421" width="10.4" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="465.25" y="431.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="477.8" y="341" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="480.84" y="351.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.(*otShapePlan).init0 (1 samples, 0.44%)</title><rect x="15.2" y="469" width="5.2" height="15.0" fill="rgb(233,131,31)" rx="2" ry="2" />
+<text  x="18.20" y="479.5" ></text>
+</g>
+<g >
+<title>runtime.schedule (43 samples, 18.94%)</title><rect x="898.9" y="677" width="223.5" height="15.0" fill="rgb(220,72,17)" rx="2" ry="2" />
+<text  x="901.90" y="687.5" >runtime.schedule</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (1 samples, 0.44%)</title><rect x="472.6" y="469" width="5.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="475.64" y="479.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="472.6" y="277" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="475.64" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Window).RunEventQueue (2 samples, 0.88%)</title><rect x="10.0" y="709" width="10.4" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="13.00" y="719.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (1 samples, 0.44%)</title><rect x="477.8" y="453" width="5.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="480.84" y="463.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_cond_wait (6 samples, 2.64%)</title><rect x="898.9" y="597" width="31.2" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="901.90" y="607.5" >ru..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (4 samples, 1.76%)</title><rect x="436.3" y="405" width="20.7" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="439.26" y="415.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.walkString (1 samples, 0.44%)</title><rect x="571.4" y="229" width="5.2" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="574.41" y="239.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="888.5" y="549" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="891.50" y="559.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="644.2" y="309" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="647.19" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.semawakeup (12 samples, 5.29%)</title><rect x="1127.6" y="613" width="62.4" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1130.62" y="623.5" >runtim..</text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="597.4" y="277" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="600.40" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).newGlTextTexture (1 samples, 0.44%)</title><rect x="571.4" y="261" width="5.2" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="574.41" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.handoffp (1 samples, 0.44%)</title><rect x="1117.2" y="645" width="5.2" height="15.0" fill="rgb(215,50,12)" rx="2" ry="2" />
+<text  x="1120.22" y="655.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="10.0" y="341" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="13.00" y="351.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.Uniform2f (1 samples, 0.44%)</title><rect x="566.2" y="293" width="5.2" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="569.21" y="303.5" ></text>
+</g>
+<g >
+<title>fmt.Fprintln (1 samples, 0.44%)</title><rect x="25.6" y="677" width="5.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="28.59" y="687.5" ></text>
+</g>
+<g >
+<title>database/sql.(*DB).queryDC (1 samples, 0.44%)</title><rect x="20.4" y="613" width="5.2" height="15.0" fill="rgb(252,220,52)" rx="2" ry="2" />
+<text  x="23.40" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (1 samples, 0.44%)</title><rect x="457.0" y="405" width="5.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="460.05" y="415.5" ></text>
+</g>
+<g >
+<title>runtime.notewakeup (1 samples, 0.44%)</title><rect x="1122.4" y="677" width="5.2" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1125.42" y="687.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (31 samples, 13.66%)</title><rect x="488.2" y="453" width="161.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="463.5" >fyne.io/fyne/v2/inte..</text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.(*Window).SetSize (1 samples, 0.44%)</title><rect x="888.5" y="597" width="5.2" height="15.0" fill="rgb(237,148,35)" rx="2" ry="2" />
+<text  x="891.50" y="607.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).FreeDirtyTextures (1 samples, 0.44%)</title><rect x="483.0" y="549" width="5.2" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="486.04" y="559.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="30.8" y="341" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="33.79" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func1 (13 samples, 5.73%)</title><rect x="509.0" y="357" width="67.6" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="512.03" y="367.5" >fyne.io..</text>
+</g>
+<g >
+<title>runtime.mPark (3 samples, 1.32%)</title><rect x="1096.4" y="645" width="15.6" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="1099.43" y="655.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="467.4" y="341" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="470.44" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="467.4" y="277" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="470.44" y="287.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowBufferData (1 samples, 0.44%)</title><rect x="519.4" y="245" width="5.2" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="522.43" y="255.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="639.0" y="277" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="641.99" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*coreContext).GetUniformLocation (2 samples, 0.88%)</title><rect x="509.0" y="293" width="10.4" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="512.03" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="415.5" y="213" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="418.46" y="223.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.(*Container).MinSize (1 samples, 0.44%)</title><rect x="477.8" y="405" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="480.84" y="415.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*menuBoxRenderer).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="549" width="5.2" height="15.0" fill="rgb(219,66,15)" rx="2" ry="2" />
+<text  x="13.00" y="559.5" ></text>
+</g>
+<g >
+<title>runtime.makeBucketArray (1 samples, 0.44%)</title><rect x="10.0" y="373" width="5.2" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="13.00" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.efaceeq (1 samples, 0.44%)</title><rect x="607.8" y="229" width="5.2" height="15.0" fill="rgb(216,55,13)" rx="2" ry="2" />
+<text  x="610.80" y="239.5" ></text>
+</g>
+<g >
+<title>runtime.getcallerfp (1 samples, 0.44%)</title><rect x="524.6" y="213" width="5.2" height="15.0" fill="rgb(229,112,26)" rx="2" ry="2" />
+<text  x="527.63" y="223.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="613" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="13.00" y="623.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DeleteBuffers (1 samples, 0.44%)</title><rect x="613.0" y="293" width="5.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="616.00" y="303.5" ></text>
+</g>
+<g >
+<title>database/sql.withLock (1 samples, 0.44%)</title><rect x="20.4" y="597" width="5.2" height="15.0" fill="rgb(231,123,29)" rx="2" ry="2" />
+<text  x="23.40" y="607.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (1 samples, 0.44%)</title><rect x="477.8" y="469" width="5.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="480.84" y="479.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="462.2" y="341" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="465.25" y="351.5" ></text>
+</g>
+<g >
+<title>syscall.write (1 samples, 0.44%)</title><rect x="20.4" y="437" width="5.2" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="23.40" y="447.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.createItemAndApplyThemeScope (1 samples, 0.44%)</title><rect x="36.0" y="645" width="5.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="38.99" y="655.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDeleteBuffers (1 samples, 0.44%)</title><rect x="529.8" y="261" width="5.2" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="532.82" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.notewakeup (1 samples, 0.44%)</title><rect x="1112.0" y="645" width="5.2" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1115.03" y="655.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize (13 samples, 5.73%)</title><rect x="415.5" y="549" width="67.5" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="418.46" y="559.5" >fyne.io..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (1 samples, 0.44%)</title><rect x="457.0" y="421" width="5.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="460.05" y="431.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).Refresh (1 samples, 0.44%)</title><rect x="15.2" y="661" width="5.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="18.20" y="671.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="457.0" y="213" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="460.05" y="223.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="462.2" y="389" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="465.25" y="399.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).rectCoords (1 samples, 0.44%)</title><rect x="597.4" y="309" width="5.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="600.40" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (2 samples, 0.88%)</title><rect x="441.5" y="165" width="10.4" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="444.45" y="175.5" ></text>
+</g>
+<g >
+<title>runtime.systemstack (13 samples, 5.73%)</title><rect x="1122.4" y="709" width="67.6" height="15.0" fill="rgb(206,6,1)" rx="2" ry="2" />
+<text  x="1125.42" y="719.5" >runtime..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.splitLines (1 samples, 0.44%)</title><rect x="30.8" y="469" width="5.2" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="33.79" y="479.5" ></text>
+</g>
+<g >
+<title>runtime.semawakeup (1 samples, 0.44%)</title><rect x="1112.0" y="629" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1115.03" y="639.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="571.4" y="53" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="574.41" y="63.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="462.2" y="309" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="465.25" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.semawakeup (1 samples, 0.44%)</title><rect x="1117.2" y="597" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1120.22" y="607.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).RenderedTextSize (1 samples, 0.44%)</title><rect x="10.0" y="453" width="5.2" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="13.00" y="463.5" ></text>
+</g>
+<g >
+<title>runtime.notesleep (3 samples, 1.32%)</title><rect x="1096.4" y="629" width="15.6" height="15.0" fill="rgb(230,119,28)" rx="2" ry="2" />
+<text  x="1099.43" y="639.5" ></text>
+</g>
+<g >
+<title>runtime.rawstring (1 samples, 0.44%)</title><rect x="639.0" y="293" width="5.2" height="15.0" fill="rgb(214,44,10)" rx="2" ry="2" />
+<text  x="641.99" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="472.6" y="245" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="475.64" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="10.0" y="597" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="13.00" y="607.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (2 samples, 0.88%)</title><rect x="441.5" y="149" width="10.4" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="444.45" y="159.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.RangeExpiredTexturesFor (1 samples, 0.44%)</title><rect x="483.0" y="533" width="5.2" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="486.04" y="543.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays (5 samples, 2.20%)</title><rect x="535.0" y="277" width="26.0" height="15.0" fill="rgb(240,163,38)" rx="2" ry="2" />
+<text  x="538.02" y="287.5" >g..</text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="493.4" y="53" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="496.44" y="63.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).MinSize (2 samples, 0.88%)</title><rect x="441.5" y="277" width="10.4" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="444.45" y="287.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="654.6" y="485" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="657.58" y="495.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="457.0" y="181" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="460.05" y="191.5" ></text>
+</g>
+<g >
+<title>database/sql.(*DB).QueryContext.func1 (1 samples, 0.44%)</title><rect x="20.4" y="645" width="5.2" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="23.40" y="655.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Select).MinSize (1 samples, 0.44%)</title><rect x="472.6" y="389" width="5.2" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="475.64" y="399.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).updateRowBounds (1 samples, 0.44%)</title><rect x="15.2" y="597" width="5.2" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="18.20" y="607.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).Clear (1 samples, 0.44%)</title><rect x="654.6" y="533" width="5.2" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="657.58" y="543.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.BufferData (1 samples, 0.44%)</title><rect x="519.4" y="277" width="5.2" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="522.43" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawImage (2 samples, 0.88%)</title><rect x="597.4" y="341" width="10.4" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="600.40" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*menuBoxRenderer).MinSize (1 samples, 0.44%)</title><rect x="457.0" y="373" width="5.2" height="15.0" fill="rgb(219,66,15)" rx="2" ry="2" />
+<text  x="460.05" y="383.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func1 (3 samples, 1.32%)</title><rect x="633.8" y="421" width="15.6" height="15.0" fill="rgb(206,8,2)" rx="2" ry="2" />
+<text  x="636.79" y="431.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.WalkVisibleObjectTree (13 samples, 5.73%)</title><rect x="415.5" y="501" width="67.5" height="15.0" fill="rgb(224,87,20)" rx="2" ry="2" />
+<text  x="418.46" y="511.5" >fyne.io..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.shapeCallback (1 samples, 0.44%)</title><rect x="571.4" y="213" width="5.2" height="15.0" fill="rgb(215,47,11)" rx="2" ry="2" />
+<text  x="574.41" y="223.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="571.4" y="133" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="574.41" y="143.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).Paint (3 samples, 1.32%)</title><rect x="633.8" y="389" width="15.6" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="636.79" y="399.5" ></text>
+</g>
+<g >
+<title>runtime.send.goready.func1 (12 samples, 5.29%)</title><rect x="1127.6" y="693" width="62.4" height="15.0" fill="rgb(226,97,23)" rx="2" ry="2" />
+<text  x="1130.62" y="703.5" >runtim..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*menuItemRenderer).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="485" width="5.2" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="13.00" y="495.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="472.6" y="373" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="475.64" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (5 samples, 2.20%)</title><rect x="535.0" y="261" width="26.0" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="538.02" y="271.5" >r..</text>
+</g>
+<g >
+<title>runtime.startm (1 samples, 0.44%)</title><rect x="1117.2" y="629" width="5.2" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="1120.22" y="639.5" ></text>
+</g>
+<g >
+<title>time.Now (1 samples, 0.44%)</title><rect x="420.7" y="341" width="5.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="423.66" y="351.5" ></text>
+</g>
+<g >
+<title>_cgoexp_337fa9550dbe_goWindowSizeCB (1 samples, 0.44%)</title><rect x="888.5" y="469" width="5.2" height="15.0" fill="rgb(225,96,22)" rx="2" ry="2" />
+<text  x="891.50" y="479.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_cond_wait (15 samples, 6.61%)</title><rect x="971.7" y="613" width="77.9" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="974.67" y="623.5" >runtime.p..</text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="451.9" y="309" width="5.1" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="454.85" y="319.5" ></text>
+</g>
+<g >
+<title>github.com/go-sql-driver/mysql.(*mysqlConn).QueryContext (1 samples, 0.44%)</title><rect x="20.4" y="549" width="5.2" height="15.0" fill="rgb(239,159,38)" rx="2" ry="2" />
+<text  x="23.40" y="559.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (3 samples, 1.32%)</title><rect x="436.3" y="309" width="15.6" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="439.26" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).Paint (13 samples, 5.73%)</title><rect x="509.0" y="341" width="67.6" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="512.03" y="351.5" >fyne.io..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="457.0" y="293" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="460.05" y="303.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/shaping.(*HarfbuzzShaper).Shape (1 samples, 0.44%)</title><rect x="571.4" y="197" width="5.2" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="574.41" y="207.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays (2 samples, 0.88%)</title><rect x="623.4" y="293" width="10.4" height="15.0" fill="rgb(240,163,38)" rx="2" ry="2" />
+<text  x="626.39" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.semasleep (3 samples, 1.32%)</title><rect x="1096.4" y="613" width="15.6" height="15.0" fill="rgb(234,134,32)" rx="2" ry="2" />
+<text  x="1099.43" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject (2 samples, 0.88%)</title><rect x="587.0" y="341" width="10.4" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="590.00" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="467.4" y="389" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="470.44" y="399.5" ></text>
+</g>
+<g >
+<title>111 (3 samples, 1.32%)</title><rect x="41.2" y="693" width="15.6" height="15.0" fill="rgb(213,41,9)" rx="2" ry="2" />
+<text  x="44.19" y="703.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (4 samples, 1.76%)</title><rect x="436.3" y="389" width="20.7" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="439.26" y="399.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowUniform2f (1 samples, 0.44%)</title><rect x="566.2" y="277" width="5.2" height="15.0" fill="rgb(218,64,15)" rx="2" ry="2" />
+<text  x="569.21" y="287.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="561.0" y="261" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="564.01" y="271.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func1 (2 samples, 0.88%)</title><rect x="587.0" y="389" width="10.4" height="15.0" fill="rgb(206,8,2)" rx="2" ry="2" />
+<text  x="590.00" y="399.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="36.0" y="597" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="38.99" y="607.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowEnableVertexAttribArray (1 samples, 0.44%)</title><rect x="524.6" y="261" width="5.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="527.63" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.interhash (1 samples, 0.44%)</title><rect x="477.8" y="309" width="5.2" height="15.0" fill="rgb(239,156,37)" rx="2" ry="2" />
+<text  x="480.84" y="319.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/render.(*Renderer).DrawShapedRunAt (1 samples, 0.44%)</title><rect x="493.4" y="149" width="5.2" height="15.0" fill="rgb(212,35,8)" rx="2" ry="2" />
+<text  x="496.44" y="159.5" ></text>
+</g>
+<g >
+<title>runtime.pthread_cond_signal (1 samples, 0.44%)</title><rect x="1117.2" y="581" width="5.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1120.22" y="591.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (1 samples, 0.44%)</title><rect x="415.5" y="357" width="5.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="418.46" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="30.8" y="373" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="33.79" y="383.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.(*shaperOpentype).compile (1 samples, 0.44%)</title><rect x="15.2" y="485" width="5.2" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="18.20" y="495.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="415.5" y="277" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="418.46" y="287.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/shaping.(*HarfbuzzShaper).Shape (1 samples, 0.44%)</title><rect x="15.2" y="533" width="5.2" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="18.20" y="543.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (8 samples, 3.52%)</title><rect x="415.5" y="437" width="41.5" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="447.5" >fyn..</text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="472.6" y="293" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="475.64" y="303.5" ></text>
+</g>
+<g >
+<title>github.com/go-sql-driver/mysql.(*mysqlConn).writeCommandPacketStr (1 samples, 0.44%)</title><rect x="20.4" y="517" width="5.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="23.40" y="527.5" ></text>
+</g>
+<g >
+<title>runtime.newarray (1 samples, 0.44%)</title><rect x="10.0" y="357" width="5.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="13.00" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).createBuffer (2 samples, 0.88%)</title><rect x="587.0" y="309" width="10.4" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="590.00" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (2 samples, 0.88%)</title><rect x="623.4" y="277" width="10.4" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="626.39" y="287.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.(*otMapBuilder).compile (1 samples, 0.44%)</title><rect x="15.2" y="437" width="5.2" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="18.20" y="447.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).runGL (94 samples, 41.41%)</title><rect x="405.1" y="629" width="488.6" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="408.07" y="639.5" >fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).runGL</text>
+</g>
+<g >
+<title>runtime.kevent (8 samples, 3.52%)</title><rect x="930.1" y="629" width="41.6" height="15.0" fill="rgb(211,27,6)" rx="2" ry="2" />
+<text  x="933.09" y="639.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/layout.vBoxLayout.MinSize (1 samples, 0.44%)</title><rect x="472.6" y="405" width="5.2" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="475.64" y="415.5" ></text>
+</g>
+<g >
+<title>syscall.write (1 samples, 0.44%)</title><rect x="25.6" y="629" width="5.2" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="28.59" y="639.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (3 samples, 1.32%)</title><rect x="581.8" y="405" width="15.6" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="584.81" y="415.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwSwapBuffers (44 samples, 19.38%)</title><rect x="659.8" y="517" width="228.7" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="662.78" y="527.5" >github.com/go-gl/glfw/v3.3/glf..</text>
+</g>
+<g >
+<title>runtime.walltime (1 samples, 0.44%)</title><rect x="420.7" y="309" width="5.2" height="15.0" fill="rgb(254,227,54)" rx="2" ry="2" />
+<text  x="423.66" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.growslice (1 samples, 0.44%)</title><rect x="30.8" y="453" width="5.2" height="15.0" fill="rgb(230,119,28)" rx="2" ry="2" />
+<text  x="33.79" y="463.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).defineVertexArray (1 samples, 0.44%)</title><rect x="524.6" y="293" width="5.2" height="15.0" fill="rgb(221,74,17)" rx="2" ry="2" />
+<text  x="527.63" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.mapassign (1 samples, 0.44%)</title><rect x="10.0" y="405" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="13.00" y="415.5" ></text>
+</g>
+<g >
+<title>runtime.concatstrings (2 samples, 0.88%)</title><rect x="509.0" y="261" width="10.4" height="15.0" fill="rgb(220,73,17)" rx="2" ry="2" />
+<text  x="512.03" y="271.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DrawArrays (2 samples, 0.88%)</title><rect x="498.6" y="245" width="10.4" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="501.63" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="581.8" y="389" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="584.81" y="399.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawText (1 samples, 0.44%)</title><rect x="571.4" y="309" width="5.2" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="574.41" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 (1 samples, 0.44%)</title><rect x="472.6" y="437" width="5.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="475.64" y="447.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.(*Buffer).newShapePlanCached (1 samples, 0.44%)</title><rect x="15.2" y="501" width="5.2" height="15.0" fill="rgb(236,145,34)" rx="2" ry="2" />
+<text  x="18.20" y="511.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="597.4" y="293" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="600.40" y="303.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (1 samples, 0.44%)</title><rect x="649.4" y="453" width="5.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="652.38" y="463.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="15.2" y="293" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="18.20" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="36.0" y="581" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="38.99" y="591.5" ></text>
+</g>
+<g >
+<title>runtime.semawakeup (1 samples, 0.44%)</title><rect x="1122.4" y="661" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1125.42" y="671.5" ></text>
+</g>
+<g >
+<title>runtime.memequal32 (1 samples, 0.44%)</title><rect x="607.8" y="181" width="5.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="610.80" y="191.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="462.2" y="325" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="465.25" y="335.5" ></text>
+</g>
+<g >
+<title>syscall.Write (1 samples, 0.44%)</title><rect x="20.4" y="453" width="5.2" height="15.0" fill="rgb(208,18,4)" rx="2" ry="2" />
+<text  x="23.40" y="463.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="888.5" y="293" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="891.50" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="581.8" y="325" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="584.81" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (1 samples, 0.44%)</title><rect x="477.8" y="485" width="5.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="480.84" y="495.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="571.4" y="101" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="574.41" y="111.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.goWindowSizeCB (1 samples, 0.44%)</title><rect x="888.5" y="453" width="5.2" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="891.50" y="463.5" ></text>
+</g>
+<g >
+<title>runtime.park_m (44 samples, 19.38%)</title><rect x="893.7" y="693" width="228.7" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="896.70" y="703.5" >runtime.park_m</text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="488.2" y="197" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="491.24" y="207.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails (1 samples, 0.44%)</title><rect x="633.8" y="341" width="5.2" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="636.79" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Label).MinSize (3 samples, 1.32%)</title><rect x="436.3" y="325" width="15.6" height="15.0" fill="rgb(226,99,23)" rx="2" ry="2" />
+<text  x="439.26" y="335.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (37 samples, 16.30%)</title><rect x="212.7" y="581" width="192.4" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="215.73" y="591.5" >runtime.cgocall</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (2 samples, 0.88%)</title><rect x="462.2" y="453" width="10.4" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="465.25" y="463.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.CleanCanvases (2 samples, 0.88%)</title><rect x="405.1" y="597" width="10.4" height="15.0" fill="rgb(207,13,3)" rx="2" ry="2" />
+<text  x="408.07" y="607.5" ></text>
+</g>
+<g >
+<title>runtime.profilealloc (1 samples, 0.44%)</title><rect x="431.1" y="197" width="5.2" height="15.0" fill="rgb(236,145,34)" rx="2" ry="2" />
+<text  x="434.06" y="207.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).Run (131 samples, 57.71%)</title><rect x="212.7" y="645" width="681.0" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="215.73" y="655.5" >fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).Run</text>
+</g>
+<g >
+<title>runtime.walltime (1 samples, 0.44%)</title><rect x="425.9" y="277" width="5.2" height="15.0" fill="rgb(254,227,54)" rx="2" ry="2" />
+<text  x="428.86" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="565" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="13.00" y="575.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/layout.stackLayout.MinSize (4 samples, 1.76%)</title><rect x="436.3" y="341" width="20.7" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="439.26" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="467.4" y="373" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="470.44" y="383.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.(*otShapePlanner).compile (1 samples, 0.44%)</title><rect x="15.2" y="453" width="5.2" height="15.0" fill="rgb(248,198,47)" rx="2" ry="2" />
+<text  x="18.20" y="463.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.SetCanvasForObject (1 samples, 0.44%)</title><rect x="415.5" y="325" width="5.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="418.46" y="335.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowGetUniformLocation (1 samples, 0.44%)</title><rect x="561.0" y="277" width="5.2" height="15.0" fill="rgb(211,27,6)" rx="2" ry="2" />
+<text  x="564.01" y="287.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (44 samples, 19.38%)</title><rect x="659.8" y="501" width="228.7" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="662.78" y="511.5" >runtime.cgocall</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).getTexture (1 samples, 0.44%)</title><rect x="571.4" y="277" width="5.2" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="574.41" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (3 samples, 1.32%)</title><rect x="633.8" y="437" width="15.6" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="636.79" y="447.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.(*Window).SwapBuffers.func1 (44 samples, 19.38%)</title><rect x="659.8" y="533" width="228.7" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="662.78" y="543.5" >github.com/go-gl/glfw/v3.3/glf..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Select).showPopUp (1 samples, 0.44%)</title><rect x="10.0" y="661" width="5.2" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="13.00" y="671.5" ></text>
+</g>
+<g >
+<title>runtime.mPark (6 samples, 2.64%)</title><rect x="898.9" y="645" width="31.2" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="901.90" y="655.5" >ru..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).WalkTrees (32 samples, 14.10%)</title><rect x="488.2" y="533" width="166.4" height="15.0" fill="rgb(249,203,48)" rx="2" ry="2" />
+<text  x="491.24" y="543.5" >fyne.io/fyne/v2/inter..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.RangeExpiredTexturesFor.func1 (1 samples, 0.44%)</title><rect x="483.0" y="501" width="5.2" height="15.0" fill="rgb(241,167,40)" rx="2" ry="2" />
+<text  x="486.04" y="511.5" ></text>
+</g>
+<g >
+<title>runtime.(*timer).reset (1 samples, 0.44%)</title><rect x="893.7" y="677" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="896.70" y="687.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (2 samples, 0.88%)</title><rect x="441.5" y="85" width="10.4" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="444.45" y="95.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="15.2" y="309" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="18.20" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.(*Container).MinSize (1 samples, 0.44%)</title><rect x="472.6" y="421" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="475.64" y="431.5" ></text>
+</g>
+<g >
+<title>runtime.main (131 samples, 57.71%)</title><rect x="212.7" y="709" width="681.0" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="215.73" y="719.5" >runtime.main</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.RenderedTextSize (2 samples, 0.88%)</title><rect x="441.5" y="197" width="10.4" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="444.45" y="207.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (32 samples, 14.10%)</title><rect x="488.2" y="469" width="166.4" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="479.5" >fyne.io/fyne/v2/inter..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (11 samples, 4.85%)</title><rect x="415.5" y="469" width="57.1" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="479.5" >fyne.i..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func1 (7 samples, 3.08%)</title><rect x="597.4" y="405" width="36.4" height="15.0" fill="rgb(206,8,2)" rx="2" ry="2" />
+<text  x="600.40" y="415.5" >fyn..</text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDeleteBuffers (1 samples, 0.44%)</title><rect x="613.0" y="277" width="5.2" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="616.00" y="287.5" ></text>
+</g>
+<g >
+<title>runtime.startm (12 samples, 5.29%)</title><rect x="1127.6" y="645" width="62.4" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="1130.62" y="655.5" >runtim..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree (13 samples, 5.73%)</title><rect x="415.5" y="517" width="67.5" height="15.0" fill="rgb(235,140,33)" rx="2" ry="2" />
+<text  x="418.46" y="527.5" >fyne.io..</text>
+</g>
+<g >
+<title>runtime.mProf_Malloc (1 samples, 0.44%)</title><rect x="431.1" y="181" width="5.2" height="15.0" fill="rgb(206,6,1)" rx="2" ry="2" />
+<text  x="434.06" y="191.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (2 samples, 0.88%)</title><rect x="441.5" y="37" width="10.4" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="444.45" y="47.5" ></text>
+</g>
+<g >
+<title>runtime.concatstring2 (2 samples, 0.88%)</title><rect x="509.0" y="277" width="10.4" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="512.03" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (21 samples, 9.25%)</title><rect x="488.2" y="421" width="109.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="431.5" >fyne.io/fyne/..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle (2 samples, 0.88%)</title><rect x="587.0" y="325" width="10.4" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="590.00" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (4 samples, 1.76%)</title><rect x="488.2" y="373" width="20.8" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="491.24" y="383.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/layout.vBoxLayout.MinSize (1 samples, 0.44%)</title><rect x="10.0" y="517" width="5.2" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="13.00" y="527.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).getTexture (1 samples, 0.44%)</title><rect x="493.4" y="245" width="5.2" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="496.44" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).freeBuffer (1 samples, 0.44%)</title><rect x="613.0" y="309" width="5.2" height="15.0" fill="rgb(253,221,52)" rx="2" ry="2" />
+<text  x="616.00" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func1 (7 samples, 3.08%)</title><rect x="597.4" y="389" width="36.4" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="600.40" y="399.5" >fyn..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle (2 samples, 0.88%)</title><rect x="639.0" y="357" width="10.4" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="641.99" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="618.2" y="293" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="621.19" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (2 samples, 0.88%)</title><rect x="441.5" y="117" width="10.4" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="444.45" y="127.5" ></text>
+</g>
+<g >
+<title>main.main (131 samples, 57.71%)</title><rect x="212.7" y="693" width="681.0" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="215.73" y="703.5" >main.main</text>
+</g>
+<g >
+<title>runtime.mPark (16 samples, 7.05%)</title><rect x="971.7" y="661" width="83.1" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="974.67" y="671.5" >runtime.m..</text>
+</g>
+<g >
+<title>runtime.typeAssert (1 samples, 0.44%)</title><rect x="576.6" y="341" width="5.2" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="579.61" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="415.5" y="261" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="418.46" y="271.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).freeBuffer (1 samples, 0.44%)</title><rect x="529.8" y="293" width="5.2" height="15.0" fill="rgb(253,221,52)" rx="2" ry="2" />
+<text  x="532.82" y="303.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Menu).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="629" width="5.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="13.00" y="639.5" ></text>
+</g>
+<g >
+<title>syscall.syscall (1 samples, 0.44%)</title><rect x="25.6" y="613" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="28.59" y="623.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays (1 samples, 0.44%)</title><rect x="602.6" y="293" width="5.2" height="15.0" fill="rgb(240,163,38)" rx="2" ry="2" />
+<text  x="605.60" y="303.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (12 samples, 5.29%)</title><rect x="415.5" y="485" width="62.3" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="495.5" >fyne.i..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (4 samples, 1.76%)</title><rect x="488.2" y="357" width="20.8" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="491.24" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="415.5" y="229" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="418.46" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.func1 (1 samples, 0.44%)</title><rect x="888.5" y="357" width="5.2" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="891.50" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.nilinterequal (1 samples, 0.44%)</title><rect x="607.8" y="245" width="5.2" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="610.80" y="255.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (2 samples, 0.88%)</title><rect x="441.5" y="133" width="10.4" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="444.45" y="143.5" ></text>
+</g>
+<g >
+<title>golang.org/x/image/vector.(*Rasterizer).Draw (1 samples, 0.44%)</title><rect x="493.4" y="117" width="5.2" height="15.0" fill="rgb(242,171,41)" rx="2" ry="2" />
+<text  x="496.44" y="127.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="457.0" y="309" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="460.05" y="319.5" ></text>
+</g>
+<g >
+<title>33 (17 samples, 7.49%)</title><rect x="124.4" y="693" width="88.3" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="127.36" y="703.5" >33</text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="431.1" y="229" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="434.06" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).Refresh (1 samples, 0.44%)</title><rect x="30.8" y="533" width="5.2" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="33.79" y="543.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="602.6" y="277" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="605.60" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*tableCellsRenderer).Refresh (1 samples, 0.44%)</title><rect x="30.8" y="645" width="5.2" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="33.79" y="655.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*coreContext).BufferData.BufferData.func1 (2 samples, 0.88%)</title><rect x="587.0" y="277" width="10.4" height="15.0" fill="rgb(250,207,49)" rx="2" ry="2" />
+<text  x="590.00" y="287.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="30.8" y="421" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="33.79" y="431.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/widget.(*Base).MinSize (1 samples, 0.44%)</title><rect x="457.0" y="325" width="5.2" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="460.05" y="335.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays (1 samples, 0.44%)</title><rect x="633.8" y="309" width="5.2" height="15.0" fill="rgb(240,163,38)" rx="2" ry="2" />
+<text  x="636.79" y="319.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow (91 samples, 40.09%)</title><rect x="415.5" y="597" width="473.0" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="418.46" y="607.5" >fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow</text>
+</g>
+<g >
+<title>runtime.pthread_cond_wait (3 samples, 1.32%)</title><rect x="1096.4" y="597" width="15.6" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="1099.43" y="607.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.SetCanvasForObject (1 samples, 0.44%)</title><rect x="425.9" y="341" width="5.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="428.86" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="581.8" y="261" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="584.81" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="618.2" y="277" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="621.19" y="287.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="566.2" y="261" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="569.21" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (2 samples, 0.88%)</title><rect x="587.0" y="245" width="10.4" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="590.00" y="255.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="457.0" y="165" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="460.05" y="175.5" ></text>
+</g>
+<g >
+<title>type:.eq.fyne.io/fyne/v2/internal/cache.FontCacheEntry (1 samples, 0.44%)</title><rect x="607.8" y="213" width="5.2" height="15.0" fill="rgb(240,163,39)" rx="2" ry="2" />
+<text  x="610.80" y="223.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails (1 samples, 0.44%)</title><rect x="571.4" y="293" width="5.2" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="574.41" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="36.0" y="613" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="38.99" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).MinSize (1 samples, 0.44%)</title><rect x="457.0" y="389" width="5.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="460.05" y="399.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.(*Window).SwapBuffers (44 samples, 19.38%)</title><rect x="659.8" y="549" width="228.7" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="662.78" y="559.5" >github.com/go-gl/glfw/v3.3/glf..</text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="597.4" y="261" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="600.40" y="271.5" ></text>
+</g>
+<g >
+<title>sort.Slice (1 samples, 0.44%)</title><rect x="15.2" y="421" width="5.2" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="18.20" y="431.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.BufferData (2 samples, 0.88%)</title><rect x="587.0" y="293" width="10.4" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="590.00" y="303.5" ></text>
+</g>
+<g >
+<title>database/sql.(*DB).QueryContext (1 samples, 0.44%)</title><rect x="20.4" y="677" width="5.2" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="23.40" y="687.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (2 samples, 0.88%)</title><rect x="441.5" y="53" width="10.4" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="444.45" y="63.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawText (4 samples, 1.76%)</title><rect x="488.2" y="277" width="20.8" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="491.24" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).drawSingleFrame (93 samples, 40.97%)</title><rect x="405.1" y="613" width="483.4" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="408.07" y="623.5" >fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).drawSingleFrame</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails (4 samples, 1.76%)</title><rect x="488.2" y="261" width="20.8" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="491.24" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.ifaceeq (1 samples, 0.44%)</title><rect x="607.8" y="197" width="5.2" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="610.80" y="207.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (2 samples, 0.88%)</title><rect x="509.0" y="229" width="10.4" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="512.03" y="239.5" ></text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="10.0" y="325" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="13.00" y="335.5" ></text>
+</g>
+<g >
+<title>database/sql.ctxDriverQuery (1 samples, 0.44%)</title><rect x="20.4" y="565" width="5.2" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="23.40" y="575.5" ></text>
+</g>
+<g >
+<title>runtime.mcall (44 samples, 19.38%)</title><rect x="893.7" y="709" width="228.7" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="896.70" y="719.5" >runtime.mcall</text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl._Cfunc_glowClear (1 samples, 0.44%)</title><rect x="654.6" y="501" width="5.2" height="15.0" fill="rgb(209,20,4)" rx="2" ry="2" />
+<text  x="657.58" y="511.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2.(*Container).MinSize (1 samples, 0.44%)</title><rect x="10.0" y="533" width="5.2" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="13.00" y="543.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.SetCanvasForObject (2 samples, 0.88%)</title><rect x="462.2" y="405" width="10.4" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="465.25" y="415.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/layout.(*borderLayout).MinSize (1 samples, 0.44%)</title><rect x="477.8" y="421" width="5.2" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="480.84" y="431.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func1 (4 samples, 1.76%)</title><rect x="488.2" y="325" width="20.8" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="491.24" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Table).templateSize (1 samples, 0.44%)</title><rect x="36.0" y="661" width="5.2" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="38.99" y="671.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).createBuffer (1 samples, 0.44%)</title><rect x="519.4" y="293" width="5.2" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="522.43" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcentral).grow (1 samples, 0.44%)</title><rect x="467.4" y="309" width="5.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="470.44" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.getitab (1 samples, 0.44%)</title><rect x="576.6" y="325" width="5.2" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="579.61" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).RunWithContext (91 samples, 40.09%)</title><rect x="415.5" y="581" width="473.0" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="418.46" y="591.5" >fyne.io/fyne/v2/internal/driver/glfw.(*window).RunWithContext</text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="415.5" y="293" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="418.46" y="303.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.DrawArrays (1 samples, 0.44%)</title><rect x="633.8" y="325" width="5.2" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="636.79" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/widget.(*SimpleRenderer).MinSize (1 samples, 0.44%)</title><rect x="431.1" y="309" width="5.2" height="15.0" fill="rgb(253,221,52)" rx="2" ry="2" />
+<text  x="434.06" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="581.8" y="341" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="584.81" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.notewakeup (1 samples, 0.44%)</title><rect x="1117.2" y="613" width="5.2" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1120.22" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="472.6" y="341" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="475.64" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="524.6" y="245" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="527.63" y="255.5" ></text>
+</g>
+<g >
+<title>fmt.Println (1 samples, 0.44%)</title><rect x="25.6" y="693" width="5.2" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="28.59" y="703.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="472.6" y="325" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="475.64" y="335.5" ></text>
+</g>
+<g >
+<title>sync.(*Map).Range (1 samples, 0.44%)</title><rect x="483.0" y="517" width="5.2" height="15.0" fill="rgb(217,58,14)" rx="2" ry="2" />
+<text  x="486.04" y="527.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.Renderer (1 samples, 0.44%)</title><rect x="472.6" y="357" width="5.2" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="475.64" y="367.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/gl/v2.1/gl.EnableVertexAttribArray (1 samples, 0.44%)</title><rect x="524.6" y="277" width="5.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="527.63" y="287.5" ></text>
+</g>
+<g >
+<title>time.now (1 samples, 0.44%)</title><rect x="420.7" y="325" width="5.2" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="423.66" y="335.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="15.2" y="357" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="18.20" y="367.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.lineBounds (1 samples, 0.44%)</title><rect x="30.8" y="485" width="5.2" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="33.79" y="495.5" ></text>
+</g>
+<g >
+<title>runtime.wakep (8 samples, 3.52%)</title><rect x="1054.8" y="645" width="41.6" height="15.0" fill="rgb(216,54,13)" rx="2" ry="2" />
+<text  x="1057.85" y="655.5" >run..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive (1 samples, 0.44%)</title><rect x="420.7" y="357" width="5.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="423.66" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="415.5" y="245" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="418.46" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func1 (4 samples, 1.76%)</title><rect x="488.2" y="341" width="20.8" height="15.0" fill="rgb(206,8,2)" rx="2" ry="2" />
+<text  x="491.24" y="351.5" ></text>
+</g>
+<g >
+<title>runtime.(*timer).modify (1 samples, 0.44%)</title><rect x="893.7" y="661" width="5.2" height="15.0" fill="rgb(230,119,28)" rx="2" ry="2" />
+<text  x="896.70" y="671.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree (1 samples, 0.44%)</title><rect x="415.5" y="373" width="5.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="418.46" y="383.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*BaseWidget).Refresh (1 samples, 0.44%)</title><rect x="30.8" y="661" width="5.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="33.79" y="671.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*window).resized (1 samples, 0.44%)</title><rect x="888.5" y="437" width="5.2" height="15.0" fill="rgb(221,74,17)" rx="2" ry="2" />
+<text  x="891.50" y="447.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.(*Window).SetSize.func1 (1 samples, 0.44%)</title><rect x="888.5" y="581" width="5.2" height="15.0" fill="rgb(208,16,4)" rx="2" ry="2" />
+<text  x="891.50" y="591.5" ></text>
+</g>
+<g >
+<title>github.com/go-text/typesetting/harfbuzz.(*Buffer).Shape (1 samples, 0.44%)</title><rect x="15.2" y="517" width="5.2" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="18.20" y="527.5" ></text>
+</g>
+<g >
+<title>sync.(*Map).Load (1 samples, 0.44%)</title><rect x="607.8" y="277" width="5.2" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="610.80" y="287.5" ></text>
+</g>
+<g >
+<title>os.(*File).write (1 samples, 0.44%)</title><rect x="25.6" y="661" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="28.59" y="671.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/cache.(*expiringCache).isExpired (1 samples, 0.44%)</title><rect x="410.3" y="581" width="5.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="413.26" y="591.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (1 samples, 0.44%)</title><rect x="576.6" y="373" width="5.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="579.61" y="383.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="15.2" y="389" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="18.20" y="399.5" ></text>
+</g>
+<g >
+<title>net.(*conn).Write (1 samples, 0.44%)</title><rect x="20.4" y="485" width="5.2" height="15.0" fill="rgb(206,4,1)" rx="2" ry="2" />
+<text  x="23.40" y="495.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint (33 samples, 14.54%)</title><rect x="488.2" y="549" width="171.6" height="15.0" fill="rgb(254,225,53)" rx="2" ry="2" />
+<text  x="491.24" y="559.5" >fyne.io/fyne/v2/intern..</text>
+</g>
+<g >
+<title>runtime.(*mcentral).cacheSpan (1 samples, 0.44%)</title><rect x="472.6" y="261" width="5.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="475.64" y="271.5" ></text>
+</g>
+<g >
+<title>runtime.entersyscall_sysmon (1 samples, 0.44%)</title><rect x="1122.4" y="693" width="5.2" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="1125.42" y="703.5" ></text>
+</g>
+<g >
+<title>golang.org/x/image/vector.(*Rasterizer).rasterizeOpOver (1 samples, 0.44%)</title><rect x="493.4" y="101" width="5.2" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="496.44" y="111.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.lineBounds (1 samples, 0.44%)</title><rect x="15.2" y="565" width="5.2" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="18.20" y="575.5" ></text>
+</g>
+<g >
+<title>runtime.notesleep (16 samples, 7.05%)</title><rect x="971.7" y="645" width="83.1" height="15.0" fill="rgb(230,119,28)" rx="2" ry="2" />
+<text  x="974.67" y="655.5" >runtime.n..</text>
+</g>
+<g >
+<title>runtime.memclrNoHeapPointers (1 samples, 0.44%)</title><rect x="581.8" y="245" width="5.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="584.81" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).WalkTrees (13 samples, 5.73%)</title><rect x="415.5" y="533" width="67.5" height="15.0" fill="rgb(249,203,48)" rx="2" ry="2" />
+<text  x="418.46" y="543.5" >fyne.io..</text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject (4 samples, 1.76%)</title><rect x="488.2" y="293" width="20.8" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="491.24" y="303.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).nextFree (1 samples, 0.44%)</title><rect x="457.0" y="245" width="5.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="460.05" y="255.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 (8 samples, 3.52%)</title><rect x="415.5" y="421" width="41.5" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="418.46" y="431.5" >fyn..</text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="472.6" y="309" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="475.64" y="319.5" ></text>
+</g>
+<g >
+<title>runtime.newobject (1 samples, 0.44%)</title><rect x="457.0" y="277" width="5.2" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="460.05" y="287.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 (1 samples, 0.44%)</title><rect x="472.6" y="453" width="5.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="475.64" y="463.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.walkString (1 samples, 0.44%)</title><rect x="493.4" y="197" width="5.2" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="496.44" y="207.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="36.0" y="517" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="38.99" y="527.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.NewPopUpMenu (1 samples, 0.44%)</title><rect x="10.0" y="645" width="5.2" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="13.00" y="655.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="472.6" y="229" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="475.64" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*coreContext).GetUniformLocation (1 samples, 0.44%)</title><rect x="639.0" y="341" width="5.2" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="641.99" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).updateRowBounds (1 samples, 0.44%)</title><rect x="30.8" y="517" width="5.2" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="33.79" y="527.5" ></text>
+</g>
+<g >
+<title>runtime.mapaccess2 (1 samples, 0.44%)</title><rect x="477.8" y="325" width="5.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="480.84" y="335.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Label).Refresh (1 samples, 0.44%)</title><rect x="30.8" y="581" width="5.2" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="33.79" y="591.5" ></text>
+</g>
+<g >
+<title>runtime.convTnoptr (1 samples, 0.44%)</title><rect x="493.4" y="69" width="5.2" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="496.44" y="79.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*Select).MouseIn (1 samples, 0.44%)</title><rect x="15.2" y="677" width="5.2" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="18.20" y="687.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/layout.vBoxLayout.MinSize (1 samples, 0.44%)</title><rect x="477.8" y="389" width="5.2" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="480.84" y="399.5" ></text>
+</g>
+<g >
+<title>runtime.cgocall (1 samples, 0.44%)</title><rect x="633.8" y="293" width="5.2" height="15.0" fill="rgb(245,188,45)" rx="2" ry="2" />
+<text  x="636.79" y="303.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.(*Window).SwapBuffers.func1 (1 samples, 0.44%)</title><rect x="888.5" y="325" width="5.2" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="891.50" y="335.5" ></text>
+</g>
+<g >
+<title>runtime.(*mspan).initHeapBits (1 samples, 0.44%)</title><rect x="571.4" y="69" width="5.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="574.41" y="79.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*selectRenderer).Refresh (1 samples, 0.44%)</title><rect x="15.2" y="645" width="5.2" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="18.20" y="655.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="571.4" y="117" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="574.41" y="127.5" ></text>
+</g>
+<g >
+<title>github.com/go-gl/glfw/v3.3/glfw.(*Window).SwapBuffers (1 samples, 0.44%)</title><rect x="888.5" y="341" width="5.2" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="891.50" y="351.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter/gl.(*painter).newGlTextTexture (1 samples, 0.44%)</title><rect x="493.4" y="229" width="5.2" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="496.44" y="239.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*tableRenderer).Refresh (2 samples, 0.88%)</title><rect x="30.8" y="677" width="10.4" height="15.0" fill="rgb(248,199,47)" rx="2" ry="2" />
+<text  x="33.79" y="687.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/widget.(*RichText).Refresh (1 samples, 0.44%)</title><rect x="15.2" y="613" width="5.2" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="18.20" y="623.5" ></text>
+</g>
+<g >
+<title>fyne.io/fyne/v2/internal/painter.DrawString (1 samples, 0.44%)</title><rect x="571.4" y="245" width="5.2" height="15.0" fill="rgb(230,117,28)" rx="2" ry="2" />
+<text  x="574.41" y="255.5" ></text>
+</g>
+<g >
+<title>runtime.mallocgc (1 samples, 0.44%)</title><rect x="462.2" y="357" width="5.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="465.25" y="367.5" ></text>
+</g>
+<g >
+<title>runtime.hashGrow (1 samples, 0.44%)</title><rect x="10.0" y="389" width="5.2" height="15.0" fill="rgb(235,139,33)" rx="2" ry="2" />
+<text  x="13.00" y="399.5" ></text>
+</g>
+<g >
+<title>runtime.(*mcache).refill (1 samples, 0.44%)</title><rect x="36.0" y="565" width="5.2" height="15.0" fill="rgb(232,124,29)" rx="2" ry="2" />
+<text  x="38.99" y="575.5" ></text>
+</g>
+</g>
+</svg>
