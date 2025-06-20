@@ -1,0 +1,420 @@
+PeriodType: cpu nanoseconds
+Period: 10000000
+Time: 2025-06-20 08:28:55.371699 -0400 EDT
+Duration: 1m0.
+Samples:
+samples/count cpu/nanoseconds
+          8   80000000: 1 2 3 4 5 6 7 8 9 
+         37  370000000: 10 11 12 13 14 15 16 17 18 
+          1   10000000: 19 20 21 9 
+          1   10000000: 22 23 
+          1   10000000: 24 23 
+         44  440000000: 10 25 26 27 28 29 30 31 32 14 15 16 17 18 
+         17  170000000: 33 23 
+         12  120000000: 1 2 3 4 5 34 35 36 
+          1   10000000: 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 
+          1   10000000: 37 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 83 83 83 83 83 84 85 86 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 37 62 63 64 65 66 67 89 90 91 92 93 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 10 97 98 99 100 77 78 79 80 81 82 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          6   60000000: 101 102 103 104 105 106 8 9 
+          1   10000000: 10 107 108 109 110 79 80 81 82 83 83 83 83 83 83 84 85 86 87 88 29 30 31 32 14 15 16 17 18 
+          3   30000000: 111 23 
+          8   80000000: 112 23 
+          1   10000000: 37 62 63 64 65 66 67 89 113 114 115 83 83 83 83 83 84 85 86 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 116 117 3 118 119 8 9 
+          1   10000000: 10 107 108 120 121 122 79 80 81 82 83 83 83 84 85 86 87 88 29 30 31 32 14 15 16 17 18 
+          2   20000000: 123 23 
+          1   10000000: 10 25 26 27 28 29 30 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 14 15 16 17 18 
+          1   10000000: 139 140 141 142 143 144 145 146 147 72 73 74 75 76 77 78 79 80 81 82 83 83 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 10 97 98 99 148 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          2   20000000: 10 107 108 120 77 78 79 80 81 82 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 149 150 114 115 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 37 62 63 64 65 66 67 89 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 61 
+          1   10000000: 1 2 3 4 170 171 172 8 9 
+          1   10000000: 10 107 108 120 173 174 79 80 81 82 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 175 55 176 177 50 178 92 93 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          4   40000000: 10 107 108 109 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 139 179 180 181 182 183 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 184 185 10 186 187 188 189 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 190 191 192 193 194 195 196 
+          1   10000000: 197 198 199 200 201 202 29 30 31 32 14 15 16 17 18 
+          1   10000000: 37 62 63 64 65 66 67 89 113 203 91 92 93 83 83 84 85 86 95 96 29 30 31 32 14 15 16 17 18 
+          5   50000000: 204 205 206 106 8 9 
+          1   10000000: 10 207 208 209 210 88 29 30 31 32 14 15 16 17 18 
+          2   20000000: 10 107 108 120 77 78 79 80 81 82 83 83 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+         15  150000000: 101 102 103 211 172 8 9 
+          1   10000000: 212 23 
+          1   10000000: 37 62 63 64 65 66 67 89 113 203 91 92 93 83 83 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 213 38 89 214 215 173 174 79 80 81 82 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 216 217 32 14 15 16 17 18 
+          1   10000000: 10 218 219 183 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          2   20000000: 37 62 63 64 65 66 67 89 113 220 221 45 222 223 52 224 225 52 176 177 50 178 92 93 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 226 227 228 229 230 55 231 49 50 232 50 178 92 93 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 10 233 234 235 236 77 78 79 80 81 82 83 83 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 213 38 89 214 215 77 78 79 80 81 82 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 237 238 239 240 241 242 243 244 245 76 77 78 79 80 81 82 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 246 179 180 181 182 247 110 79 80 81 82 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          3   30000000: 204 205 248 106 8 9 
+          1   10000000: 249 250 251 252 114 115 83 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 37 62 63 64 65 66 67 89 253 254 255 256 167 257 
+          2   20000000: 10 258 259 260 261 262 110 79 80 81 82 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          3   30000000: 101 102 103 104 263 119 8 9 
+          1   10000000: 10 258 259 260 261 262 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 264 265 266 267 89 113 114 55 224 225 52 176 178 92 93 83 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 268 269 270 271 92 93 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 1 2 3 272 36 
+          1   10000000: 273 274 103 211 172 8 9 
+          1   10000000: 275 276 217 32 14 15 16 17 18 
+          1   10000000: 37 62 63 64 65 66 67 89 113 114 55 231 49 50 178 92 93 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 139 140 277 50 178 92 93 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 249 250 251 252 203 91 92 93 83 83 83 83 83 83 84 85 94 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 190 191 192 278 279 280 281 282 283 284 285 286 287 288 289 290 291 292 196 
+          1   10000000: 37 62 63 64 65 66 67 89 113 114 293 49 50 51 52 178 92 93 83 83 83 84 85 86 95 96 29 30 31 32 14 15 16 17 18 
+          1   10000000: 10 107 108 109 110 79 80 81 82 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 139 179 180 181 182 294 110 79 80 81 82 83 83 83 83 83 83 84 85 86 87 88 29 30 31 32 14 15 16 17 18 
+          1   10000000: 37 62 63 64 65 66 67 295 296 297 162 163 164 298 167 299 300 301 302 303 167 304 167 257 
+          1   10000000: 305 306 307 308 309 310 110 79 80 81 82 83 83 83 83 83 83 84 85 94 87 88 29 30 31 32 14 15 16 17 18 
+Locations
+     1: 0x10426edef M=1 runtime.pthread_cond_signal /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:568:0 s=567
+     2: 0x10424a257 M=1 runtime.semawakeup /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/os_darwin.go:84:0 s=77
+     3: 0x1042218b3 M=1 runtime.notewakeup /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/lock_sema.go:163:0 s=144
+     4: 0x10425530b M=1 runtime.startm /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:2999:0 s=2913
+     5: 0x104287fc3 M=1 runtime.wakep /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3121:0 s=3090
+     6: 0x104257ec3 M=1 runtime.resetspinning /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3861:0 s=3848
+     7: 0x10425838b M=1 runtime.schedule /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4014:0 s=3967
+     8: 0x1042587c3 M=1 runtime.park_m /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4103:0 s=4069
+     9: 0x10428e243 M=1 runtime.mcall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/asm_arm64.s:193:0 s=167
+    10: 0x1042814b3 M=1 runtime.cgocall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/cgocall.go:167:0 s=134
+    11: 0x1048c28af M=1 github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwPollEvents _cgo_gotypes.go:1502:0 s=1501
+    12: 0x1048cd04b M=1 github.com/go-gl/glfw/v3.3/glfw.PollEvents /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/glfw/v3.3/glfw@v0.0.0-20240506104042-037f3cc74f2a/window.go:931:0 s=930
+    13: 0x1048d8a93 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).pollEvents /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop_desktop.go:25:0 s=24
+             fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).runGL /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:136:0 s=107
+    14: 0x1048d71e7 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).Run /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/driver.go:164:0 s=158
+    15: 0x1049031bf M=1 fyne.io/fyne/v2/app.(*fyneApp).Run /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/app/app.go:71:0 s=69
+    16: 0x1048dc07b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).ShowAndRun /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window.go:235:0 s=233
+    17: 0x10490df9f M=1 main.main /Users/Matt.Maloney/projects/play/gate-keeper/main.go:203:0 s=24
+    18: 0x10424ffb7 M=1 runtime.main /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:272:0 s=147
+    19: 0x10426fa7c M=1 runtime.(*timer).modify /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/time.go:527:0 s=499
+    20: 0x10426f27b M=1 runtime.(*timer).reset /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/time.go:649:0 s=648
+             runtime.resetForSleep /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/time.go:308:0 s=307
+    21: 0x1042586c3 M=1 runtime.park_m /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4090:0 s=4069
+    22: 0x182d26e0f  :0:0 s=0
+    23: 0x10425b803 M=1 runtime._ExternalCode /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:5397:0 s=5397
+    24: 0x182c9767f  :0:0 s=0
+    25: 0x1048c48af M=1 github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwSwapBuffers _cgo_gotypes.go:2392:0 s=2391
+    26: 0x1048c4dc7 M=1 github.com/go-gl/glfw/v3.3/glfw.(*Window).SwapBuffers.func1 /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/glfw/v3.3/glfw@v0.0.0-20240506104042-037f3cc74f2a/context.go:41:0 s=41
+    27: 0x1048c4d2b M=1 github.com/go-gl/glfw/v3.3/glfw.(*Window).SwapBuffers /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/glfw/v3.3/glfw@v0.0.0-20240506104042-037f3cc74f2a/context.go:41:0 s=40
+    28: 0x1048d91cb M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:226:0 s=209
+    29: 0x1048e136b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).RunWithContext /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window.go:929:0 s=923
+    30: 0x1048d905b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:209:0 s=207
+    31: 0x1048d876b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).drawSingleFrame /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:95:0 s=78
+    32: 0x1048d8df3 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).runGL /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:167:0 s=107
+    33: 0x182d26f53  :0:0 s=0
+    34: 0x10425193b M=1 runtime.ready /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:1040:0 s=1022
+    35: 0x10421ba27 M=1 runtime.send.goready.func1 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:445:0 s=444
+    36: 0x10428e2db M=1 runtime.systemstack /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/asm_arm64.s:244:0 s=207
+    37: 0x104291028 M=1 runtime.memclrNoHeapPointers /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/memclr_arm64.s:174:0 s=11
+    38: 0x1042825bb M=1 runtime.mallocgc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1165:0 s=983
+    39: 0x104282c0f M=1 runtime.newarray /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1431:0 s=1423
+    40: 0x104223907 M=1 runtime.makeBucketArray /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/map.go:377:0 s=359
+    41: 0x104223e73 M=1 runtime.hashGrow /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/map.go:1149:0 s=1139
+    42: 0x1042831b3 M=1 runtime.mapassign /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/map.go:695:0 s=615
+    43: 0x1045b92e7 M=1 fyne.io/fyne/v2/internal/cache.SetFontMetrics /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/text.go:63:0 s=54
+    44: 0x104852b4f M=1 fyne.io/fyne/v2/internal/painter.RenderedTextSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:219:0 s=212
+    45: 0x1048d689f M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).RenderedTextSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/driver.go:72:0 s=71
+    46: 0x104633093 M=1 fyne.io/fyne/v2/canvas.(*Text).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/canvas/text.go:43:0 s=42
+    47: 0x10485dc9b M=1 fyne.io/fyne/v2/widget.(*menuItemRenderer).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/menu_item.go:265:0 s=255
+    48: 0x104634f87 M=1 fyne.io/fyne/v2/internal/widget.(*Base).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/widget/base.go:73:0 s=65
+    49: 0x104641ffb M=1 fyne.io/fyne/v2/layout.vBoxLayout.MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/layout/boxlayout.go:120:0 s=111
+    50: 0x1045a928f M=1 fyne.io/fyne/v2.(*Container).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/container.go:90:0 s=88
+    51: 0x10485cb2f M=1 fyne.io/fyne/v2/widget.(*menuBoxRenderer).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/menu.go:355:0 s=354
+    52: 0x104871f57 M=1 fyne.io/fyne/v2/widget.(*BaseWidget).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/widget.go:79:0 s=71
+    53: 0x10485b73f M=1 fyne.io/fyne/v2/widget.(*Menu).CreateRenderer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/menu.go:104:0 s=100
+    54: 0x1045b9eff M=1 fyne.io/fyne/v2/internal/cache.Renderer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/widget.go:33:0 s=18
+    55: 0x104871f47 M=1 fyne.io/fyne/v2/widget.(*BaseWidget).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/widget.go:74:0 s=71
+    56: 0x10485bb67 M=1 fyne.io/fyne/v2/widget.(*Menu).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/menu.go:147:0 s=145
+    57: 0x104860363 M=1 fyne.io/fyne/v2/widget.NewPopUpMenu /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/popup_menu.go:26:0 s=21
+    58: 0x1048695cb M=1 fyne.io/fyne/v2/widget.(*Select).showPopUp /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/select.go:258:0 s=247
+    59: 0x104868faf M=1 fyne.io/fyne/v2/widget.(*Select).Tapped /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/select.go:210:0 s=198
+    60: 0x1048df27b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).mouseClickedHandleTapDoubleTap.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window.go:646:0 s=646
+    61: 0x1048e18b7 M=1 fyne.io/fyne/v2/internal/driver/common.(*Window).RunEventQueue /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/window.go:35:0 s=33
+    62: 0x104226fe3 M=1 runtime.(*mspan).initHeapBits /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/mbitmap.go:545:0 s=542
+    63: 0x1042291b3 M=1 runtime.(*mcentral).grow /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/mcentral.go:263:0 s=250
+    64: 0x104228fcf M=1 runtime.(*mcentral).cacheSpan /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/mcentral.go:170:0 s=81
+    65: 0x10422849b M=1 runtime.(*mcache).refill /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/mcache.go:182:0 s=147
+    66: 0x104222a3b M=1 runtime.(*mcache).nextFree /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:945:0 s=935
+    67: 0x10428255f M=1 runtime.mallocgc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1161:0 s=983
+    68: 0x104220727 M=1 runtime.convT /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/iface.go:344:0 s=334
+    69: 0x1047dbc2b M=1 github.com/go-text/typesetting/harfbuzz.NewFont /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/fonts.go:84:0 s=69
+    70: 0x104822bab M=1 github.com/go-text/typesetting/shaping.(*HarfbuzzShaper).Shape /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/shaping/shaping.go:91:0 s=59
+    71: 0x10485332f M=1 fyne.io/fyne/v2/internal/painter.shapeCallback /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:302:0 s=301
+    72: 0x10485303f M=1 fyne.io/fyne/v2/internal/painter.walkString /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:293:0 s=246
+    73: 0x1048525b7 M=1 fyne.io/fyne/v2/internal/painter.DrawString /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:179:0 s=170
+    74: 0x1048bc4a3 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).newGlTextTexture /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/texture.go:176:0 s=163
+    75: 0x1048bb78f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).getTexture /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/texture.go:50:0 s=35
+    76: 0x1048b7e6f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:249:0 s=246
+    77: 0x1048b7dcf M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawText /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:243:0 s=222
+    78: 0x1048b7403 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:139:0 s=126
+    79: 0x1048ba9f3 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).Paint /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/painter.go:93:0 s=91
+    80: 0x1048d5f57 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/canvas.go:296:0 s=287
+    81: 0x1048bf703 M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:486:0 s=466
+    82: 0x1045bb413 M=1 fyne.io/fyne/v2/internal/driver.walkObjectTree /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/util.go:171:0 s=137
+    83: 0x1045bb4ff M=1 fyne.io/fyne/v2/internal/driver.walkObjectTree.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/util.go:178:0 s=177
+             fyne.io/fyne/v2/internal/driver.walkObjectTree /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/util.go:192:0 s=137
+    84: 0x1045bb1f7 M=1 fyne.io/fyne/v2/internal/driver.WalkVisibleObjectTree /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/util.go:134:0 s=128
+    85: 0x1048bf2f3 M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:507:0 s=456
+    86: 0x1048beee7 M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).WalkTrees /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:428:0 s=415
+    87: 0x1048d5c97 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/canvas.go:312:0 s=280
+    88: 0x1048d910b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:218:0 s=209
+    89: 0x104222d1b M=1 runtime.newobject /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1386:0 s=1385
+    90: 0x1045b8b27 M=1 fyne.io/fyne/v2/internal/cache.SetCanvasForObject /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/canvases.go:27:0 s=26
+    91: 0x1048bd497 M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:101:0 s=99
+    92: 0x1048bf42b M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).walkTree.func2 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:501:0 s=493
+    93: 0x1045bb547 M=1 fyne.io/fyne/v2/internal/driver.walkObjectTree /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/util.go:199:0 s=137
+    94: 0x1048bee57 M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).WalkTrees /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:419:0 s=415
+    95: 0x1048bd267 M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:143:0 s=86
+    96: 0x1048d90bf M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:210:0 s=209
+    97: 0x10487f1bf M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowDeleteBuffers _cgo_gotypes.go:12391:0 s=12390
+    98: 0x1048b94ff M=1 github.com/go-gl/gl/v2.1/gl.DeleteBuffers /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:20439:0 s=20438
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).DeleteBuffer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:144:0 s=143
+    99: 0x1048b8167 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).freeBuffer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:287:0 s=284
+   100: 0x1048b807b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:281:0 s=246
+   101: 0x10426ed6f M=1 runtime.pthread_cond_wait /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:547:0 s=546
+   102: 0x10424a103 M=1 runtime.semasleep /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/os_darwin.go:71:0 s=39
+   103: 0x1042219a7 M=1 runtime.notesleep /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/lock_sema.go:183:0 s=167
+   104: 0x104255083 M=1 runtime.mPark /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:1866:0 s=1864
+             runtime.stopm /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:2886:0 s=2870
+   105: 0x104256e73 M=1 runtime.findRunnable /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3623:0 s=3250
+   106: 0x104258317 M=1 runtime.schedule /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3996:0 s=3967
+   107: 0x10487f35f M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowDrawArrays _cgo_gotypes.go:13437:0 s=13436
+   108: 0x1048b9647 M=1 github.com/go-gl/gl/v2.1/gl.DrawArrays /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:20695:0 s=20694
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).DrawArrays /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:157:0 s=156
+   109: 0x1048b7b63 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:217:0 s=151
+   110: 0x1048b74ef M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:137:0 s=126
+   111: 0x182d630e7  :0:0 s=0
+   112: 0x182d26dc7  :0:0 s=0
+   113: 0x1045b8877 M=1 fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/base.go:215:0 s=214
+   114: 0x1045b9fdb M=1 fyne.io/fyne/v2/internal/cache.Renderer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/widget.go:43:0 s=18
+   115: 0x1045bb74f M=1 fyne.io/fyne/v2/internal/driver.walkObjectTree /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/util.go:161:0 s=137
+   116: 0x10426ecef M=1 runtime.pthread_mutex_unlock /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:528:0 s=527
+   117: 0x10424a263 M=1 runtime.semawakeup /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/os_darwin.go:86:0 s=77
+   118: 0x104255b07 M=1 runtime.startlockedm /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3168:0 s=3156
+   119: 0x1042582db M=1 runtime.schedule /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4042:0 s=3967
+   120: 0x1048b8063 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:279:0 s=246
+   121: 0x1048b6f5b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawGradient /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:91:0 s=90
+   122: 0x1048b744f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:141:0 s=126
+   123: 0x182d27043  :0:0 s=0
+   124: 0x1048e481b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).platformResize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window_notxdg.go:16:0 s=7
+   125: 0x1048dc717 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).processResized /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window.go:322:0 s=304
+   126: 0x1048e95c7 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).resized /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window_desktop.go:332:0 s=331
+   127: 0x1048c9933 M=1 github.com/go-gl/glfw/v3.3/glfw.goWindowSizeCB /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/glfw/v3.3/glfw@v0.0.0-20240506104042-037f3cc74f2a/window.go:212:0 s=210
+   128: 0x1048cd4db M=1 _cgoexp_337fa9550dbe_goWindowSizeCB _cgo_gotypes.go:2666:0 s=2661
+   129: 0x10421a787 M=1 runtime.cgocallbackg1 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/cgocall.go:437:0 s=380
+   130: 0x10421a49b M=1 runtime.cgocallbackg /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/cgocall.go:350:0 s=301
+   131: 0x1042906bf M=1 runtime.cgocallback /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/asm_arm64.s:1131:0 s=1041
+   132: 0x10428e257 M=1 runtime.systemstack_switch /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/asm_arm64.s:201:0 s=201
+   133: 0x1042814df M=1 runtime.cgocall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/cgocall.go:185:0 s=134
+   134: 0x1048c446f M=1 github.com/go-gl/glfw/v3.3/glfw._Cfunc_glfwSetWindowSize _cgo_gotypes.go:2292:0 s=2291
+   135: 0x1048cabff M=1 github.com/go-gl/glfw/v3.3/glfw.(*Window).SetSize.func1 /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/glfw/v3.3/glfw@v0.0.0-20240506104042-037f3cc74f2a/window.go:478:0 s=478
+   136: 0x1048cab3b M=1 github.com/go-gl/glfw/v3.3/glfw.(*Window).SetSize /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/glfw/v3.3/glfw@v0.0.0-20240506104042-037f3cc74f2a/window.go:478:0 s=477
+   137: 0x1048db1df M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).Resize.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window.go:69:0 s=58
+   138: 0x1048d8a7b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).runGL /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:133:0 s=107
+   139: 0x1042823d4 M=1 runtime.mallocgc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1135:0 s=983
+   140: 0x1042207a7 M=1 runtime.convTnoptr /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/iface.go:360:0 s=348
+   141: 0x1045a2b5b M=1 image.(*NRGBA).At /opt/homebrew/Cellar/go/1.23.6/libexec/src/image/image.go:368:0 s=367
+   142: 0x1045e8c0b M=1 golang.org/x/image/vector.(*Rasterizer).rasterizeOpOver /Users/Matt.Maloney/go/pkg/mod/golang.org/x/image@v0.18.0/vector/vector.go:441:0 s=430
+   143: 0x1045e7f83 M=1 golang.org/x/image/vector.(*Rasterizer).Draw /Users/Matt.Maloney/go/pkg/mod/golang.org/x/image@v0.18.0/vector/vector.go:296:0 s=268
+   144: 0x1045f02db M=1 github.com/srwiley/rasterx.(*ScannerGV).Draw /Users/Matt.Maloney/go/pkg/mod/github.com/srwiley/rasterx@v0.0.0-20220730225603-2ab79fcdd4ef/scan.go:141:0 s=137
+   145: 0x104843a4b M=1 github.com/go-text/render.(*Renderer).DrawShapedRunAt /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/render@v0.2.0/render.go:115:0 s=86
+   146: 0x1048527e3 M=1 fyne.io/fyne/v2/internal/painter.DrawString.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:190:0 s=179
+   147: 0x104853627 M=1 fyne.io/fyne/v2/internal/painter.shapeCallback /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:331:0 s=301
+   148: 0x1048b7b7b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:219:0 s=151
+   149: 0x1042f2058 M=1 time.Time.Add /opt/homebrew/Cellar/go/1.23.6/libexec/src/time/time.go:889:0 s=886
+   150: 0x1045b8897 M=1 fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/base.go:215:0 s=214
+   151: 0x104295ccb M=1 internal/reflectlite.Swapper /opt/homebrew/Cellar/go/1.23.6/libexec/src/internal/reflectlite/swapper.go:68:0 s=17
+   152: 0x1043e4da3 M=1 sort.Slice /opt/homebrew/Cellar/go/1.23.6/libexec/src/sort/slice.go:26:0 s=24
+   153: 0x1047ffd03 M=1 github.com/go-text/typesetting/harfbuzz.(*otMapBuilder).compile /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/ot_map.go:285:0 s=126
+   154: 0x104807127 M=1 github.com/go-text/typesetting/harfbuzz.(*otShapePlanner).compile /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/ot_shaper.go:64:0 s=61
+   155: 0x10480794b M=1 github.com/go-text/typesetting/harfbuzz.(*otShapePlan).init0 /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/ot_shaper.go:173:0 s=168
+   156: 0x104812d77 M=1 github.com/go-text/typesetting/harfbuzz.(*shaperOpentype).compile /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/ot_shaper.go:776:0 s=775
+             github.com/go-text/typesetting/harfbuzz.newShapePlan /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/shape.go:109:0 s=95
+   157: 0x104813013 M=1 github.com/go-text/typesetting/harfbuzz.(*Buffer).newShapePlanCached /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/shape.go:146:0 s=130
+   158: 0x1048129b7 M=1 github.com/go-text/typesetting/harfbuzz.(*Buffer).Shape /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/harfbuzz/shape.go:30:0 s=29
+   159: 0x104822cbb M=1 github.com/go-text/typesetting/shaping.(*HarfbuzzShaper).Shape /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/shaping/shaping.go:113:0 s=59
+   160: 0x104866cb7 M=1 github.com/go-text/typesetting/shaping.WrapConfig.WithTruncator /Users/Matt.Maloney/go/pkg/mod/github.com/go-text/typesetting@v0.2.0/shaping/wrapping.go:471:0 s=470
+             fyne.io/fyne/v2/widget.truncateLimit /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:1130:0 s=1114
+   161: 0x104865827 M=1 fyne.io/fyne/v2/widget.lineBounds /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:1069:0 s=944
+   162: 0x104861f73 M=1 fyne.io/fyne/v2/widget.(*RichText).updateRowBounds.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:448:0 s=410
+   163: 0x104861d0f M=1 fyne.io/fyne/v2/widget.(*RichText).updateRowBounds /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:495:0 s=394
+   164: 0x104860f6b M=1 fyne.io/fyne/v2/widget.(*RichText).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:105:0 s=103
+   165: 0x10486a543 M=1 fyne.io/fyne/v2/widget.(*selectRenderer).updateLabel /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/select.go:403:0 s=387
+   166: 0x104869e93 M=1 fyne.io/fyne/v2/widget.(*selectRenderer).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/select.go:347:0 s=342
+   167: 0x1048723af M=1 fyne.io/fyne/v2/widget.(*BaseWidget).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/widget.go:137:0 s=126
+   168: 0x104868b23 M=1 fyne.io/fyne/v2/widget.(*Select).MouseIn /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/select.go:126:0 s=124
+   169: 0x1048dd9ff M=1 fyne.io/fyne/v2/internal/driver/glfw.(*window).processMouseMoved.(*window).mouseIn.func7 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/window.go:476:0 s=474
+   170: 0x104255863 M=1 runtime.handoffp /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3015:0 s=3009
+   171: 0x1042558d3 M=1 runtime.stoplockedm /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3137:0 s=3128
+   172: 0x1042582b3 M=1 runtime.schedule /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3975:0 s=3967
+   173: 0x1048b7047 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawImage /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:95:0 s=94
+   174: 0x1048b741f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawObject /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:133:0 s=126
+   175: 0x1045ba014 M=1 fyne.io/fyne/v2/internal/cache.Renderer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/widget.go:23:0 s=18
+   176: 0x104858e17 M=1 fyne.io/fyne/v2/widget.(*Label).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/label.go:80:0 s=78
+   177: 0x1046429c7 M=1 fyne.io/fyne/v2/layout.stackLayout.MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/layout/stacklayout.go:47:0 s=40
+   178: 0x1048bd5bb M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).EnsureMinSize.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:119:0 s=99
+   179: 0x10426be7f M=1 runtime.rawstring /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/string.go:277:0 s=276
+             runtime.rawstringtmp /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/string.go:141:0 s=136
+   180: 0x10426b9f3 M=1 runtime.concatstrings /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/string.go:51:0 s=25
+   181: 0x10426bb77 M=1 runtime.concatstring2 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/string.go:60:0 s=59
+   182: 0x1048b9c8b M=1 fyne.io/fyne/v2/internal/painter/gl.(*coreContext).GetUniformLocation /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:205:0 s=204
+   183: 0x1048b7ae3 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:207:0 s=151
+   184: 0x1042629f8 M=1 runtime.getcallerfp /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/runtime2.go:1293:0 s=1289
+   185: 0x10428802f M=1 runtime.entersyscall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4485:0 s=4480
+   186: 0x10487f48f M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowEnableVertexAttribArray _cgo_gotypes.go:14460:0 s=14459
+   187: 0x1048b970f M=1 github.com/go-gl/gl/v2.1/gl.EnableVertexAttribArray /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:20931:0 s=20930
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).EnableVertexAttribArray /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:165:0 s=164
+   188: 0x1048b696f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).defineVertexArray /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:24:0 s=22
+   189: 0x1048b77c3 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:168:0 s=151
+   190: 0x10428be27 M=1 syscall.syscall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:28:0 s=25
+   191: 0x1042e5fa7 M=1 syscall.write /opt/homebrew/Cellar/go/1.23.6/libexec/src/syscall/zsyscall_darwin_arm64.go:1709:0 s=1702
+   192: 0x10430858f M=1 syscall.Write /opt/homebrew/Cellar/go/1.23.6/libexec/src/syscall/syscall_unix.go:211:0 s=201
+             internal/poll.ignoringEINTRIO /opt/homebrew/Cellar/go/1.23.6/libexec/src/internal/poll/fd_unix.go:745:0 s=743
+             internal/poll.(*FD).Write /opt/homebrew/Cellar/go/1.23.6/libexec/src/internal/poll/fd_unix.go:381:0 s=367
+   193: 0x10431028b M=1 os.(*File).write /opt/homebrew/Cellar/go/1.23.6/libexec/src/os/file_posix.go:46:0 s=45
+             os.(*File).Write /opt/homebrew/Cellar/go/1.23.6/libexec/src/os/file.go:195:0 s=191
+   194: 0x10431ada3 M=1 fmt.Fprintln /opt/homebrew/Cellar/go/1.23.6/libexec/src/fmt/print.go:305:0 s=302
+   195: 0x10490c90b M=1 fmt.Println /opt/homebrew/Cellar/go/1.23.6/libexec/src/fmt/print.go:314:0 s=313
+             main.selectAllGates /Users/Matt.Maloney/projects/play/gate-keeper/gate.go:46:0 s=43
+   196: 0x10490c1eb M=1 main.NewGateSpectator.func1 /Users/Matt.Maloney/projects/play/gate-keeper/gate-spectator.go:22:0 s=19
+   197: 0x104290e70 M=1 runtime.duffcopy /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/duff_arm64.s:249:0 s=74
+   198: 0x1045b96ab M=1 fyne.io/fyne/v2/internal/cache.RangeExpiredTexturesFor.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/texture_common.go:43:0 s=42
+   199: 0x10429c953 M=1 sync.(*Map).Range /opt/homebrew/Cellar/go/1.23.6/libexec/src/sync/map.go:501:0 s=473
+   200: 0x1045b9603 M=1 fyne.io/fyne/v2/internal/cache.RangeExpiredTexturesFor /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/texture_common.go:42:0 s=40
+   201: 0x1048be0fb M=1 fyne.io/fyne/v2/internal/driver/common.(*Canvas).FreeDirtyTextures /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/common/canvas.go:287:0 s=233
+   202: 0x1048d90f3 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).repaintWindow.func1 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:215:0 s=209
+   203: 0x1045b8b7f M=1 fyne.io/fyne/v2/internal/cache.SetCanvasForObject /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/canvases.go:28:0 s=26
+   204: 0x10426ec3f M=1 runtime.kevent /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:498:0 s=497
+   205: 0x104249b1f M=1 runtime.netpoll /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/netpoll_kqueue.go:107:0 s=87
+   206: 0x1042561fb M=1 runtime.findRunnable /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3341:0 s=3250
+   207: 0x10487eeef M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowClear _cgo_gotypes.go:8334:0 s=8333
+   208: 0x1048b920f M=1 github.com/go-gl/gl/v2.1/gl.Clear /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:19614:0 s=19613
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).Clear /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:112:0 s=111
+   209: 0x1048ba8ff M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).Clear /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/painter.go:83:0 s=80
+   210: 0x1048d5c4b M=1 fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/canvas.go:285:0 s=280
+   211: 0x1042558f3 M=1 runtime.mPark /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:1866:0 s=1864
+             runtime.stoplockedm /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3141:0 s=3128
+   212: 0x182d28c27  :0:0 s=0
+   213: 0x104290f5c M=1 runtime.memclrNoHeapPointers /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/memclr_arm64.s:90:0 s=11
+   214: 0x1048b855b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).rectCoords /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:363:0 s=348
+   215: 0x1048b7f03 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:261:0 s=246
+   216: 0x1045b8200 M=1 fyne.io/fyne/v2/internal/cache.CleanCanvases /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/base.go:117:0 s=98
+   217: 0x1048d8853 M=1 fyne.io/fyne/v2/internal/driver/glfw.(*gLDriver).drawSingleFrame /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/loop.go:98:0 s=78
+   218: 0x10487fa13 M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowGetUniformLocation _cgo_gotypes.go:22509:0 s=22508
+   219: 0x1048b9cd7 M=1 github.com/go-gl/gl/v2.1/gl.GetUniformLocation /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:22648:0 s=22647
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).GetUniformLocation /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:205:0 s=204
+   220: 0x1045b9147 M=1 fyne.io/fyne/v2/internal/cache.GetFontMetrics /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/text.go:49:0 s=37
+   221: 0x104852ac3 M=1 fyne.io/fyne/v2/internal/painter.RenderedTextSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/font.go:213:0 s=212
+   222: 0x1045aafeb M=1 fyne.io/fyne/v2.MeasureText /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/text.go:72:0 s=71
+   223: 0x1048634e7 M=1 fyne.io/fyne/v2/widget.(*RichText).charMinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:159:0 s=153
+             fyne.io/fyne/v2/widget.(*textRenderer).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:605:0 s=589
+   224: 0x104860f07 M=1 fyne.io/fyne/v2/widget.(*RichText).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:95:0 s=91
+   225: 0x1046392a7 M=1 fyne.io/fyne/v2/internal/widget.(*SimpleRenderer).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/widget/simple_renderer.go:46:0 s=45
+   226: 0x10429045c M=1 runtime.memhash64 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/asm_arm64.s:558:0 s=555
+   227: 0x1042810af M=1 runtime.typehash /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/alg.go:230:0 s=223
+   228: 0x104219707 M=1 runtime.interhash /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/alg.go:169:0 s=154
+   229: 0x104282f0b M=1 runtime.mapaccess2 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/map.go:501:0 s=479
+   230: 0x1045b9e7f M=1 fyne.io/fyne/v2/internal/cache.Renderer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/widget.go:30:0 s=18
+   231: 0x104868ad7 M=1 fyne.io/fyne/v2/widget.(*Select).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/select.go:120:0 s=118
+   232: 0x104641aa3 M=1 fyne.io/fyne/v2/layout.(*borderLayout).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/layout/borderlayout.go:97:0 s=71
+   233: 0x10487f633 M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowGetAttribLocation _cgo_gotypes.go:17204:0 s=17203
+   234: 0x1048b97c7 M=1 github.com/go-gl/gl/v2.1/gl.GetAttribLocation /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:21545:0 s=21544
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).GetAttribLocation /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:169:0 s=168
+   235: 0x1048b694f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).defineVertexArray /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:23:0 s=22
+   236: 0x1048b7f6f M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawTextureWithDetails /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:264:0 s=246
+   237: 0x104219ae4 M=1 runtime.memequal32 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/alg.go:357:0 s=356
+   238: 0x104219e63 M=1 runtime.ifaceeq /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/alg.go:419:0 s=406
+   239: 0x1045ba59b M=1 type:.eq.fyne.io/fyne/v2/internal/cache.FontCacheEntry <autogenerated>:1:0 s=1
+   240: 0x104219d8f M=1 runtime.efaceeq /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/alg.go:404:0 s=390
+   241: 0x104219d13 M=1 runtime.nilinterequal /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/alg.go:388:0 s=385
+   242: 0x10428305b M=1 runtime.mapaccess2 /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/map.go:528:0 s=479
+   243: 0x10429ae23 M=1 sync.(*Map).Load /opt/homebrew/Cellar/go/1.23.6/libexec/src/sync/map.go:125:0 s=123
+   244: 0x1045b9503 M=1 fyne.io/fyne/v2/internal/cache.load /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/texture_common.go:27:0 s=26
+   245: 0x1048bb777 M=1 fyne.io/fyne/v2/internal/cache.GetTextTexture /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/texture_common.go:18:0 s=17
+             fyne.io/fyne/v2/internal/painter/gl.(*painter).getTexture /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/texture.go:47:0 s=35
+   246: 0x104282728 M=1 runtime.mallocgc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1201:0 s=983
+   247: 0x1048b782b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:176:0 s=151
+   248: 0x104256813 M=1 runtime.findRunnable /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3581:0 s=3250
+   249: 0x10428c197 M=1 runtime.walltime /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:396:0 s=394
+   250: 0x10428c6db M=1 time.now /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/timestub.go:27:0 s=26
+   251: 0x1042fa2cb M=1 time.Now /opt/homebrew/Cellar/go/1.23.6/libexec/src/time/time.go:1160:0 s=1159
+   252: 0x1045b888b M=1 fyne.io/fyne/v2/internal/cache.(*expiringCache).setAlive /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/base.go:215:0 s=214
+   253: 0x10490ef7b M=1 fyne.io/fyne/v2/canvas.NewRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/canvas/rectangle.go:61:0 s=60
+             main.main.func3.2 /Users/Matt.Maloney/projects/play/gate-keeper/main.go:99:0 s=97
+   254: 0x10485951b M=1 fyne.io/fyne/v2/widget.createItemAndApplyThemeScope /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/list.go:860:0 s=859
+   255: 0x10486ccd7 M=1 fyne.io/fyne/v2/widget.(*Table).templateSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/table.go:801:0 s=799
+   256: 0x10486e127 M=1 fyne.io/fyne/v2/widget.(*tableRenderer).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/table.go:1122:0 s=1108
+   257: 0x10490e903 M=1 main.main.func3.4 /Users/Matt.Maloney/projects/play/gate-keeper/main.go:158:0 s=146
+   258: 0x10487ee2f M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowBufferData _cgo_gotypes.go:8045:0 s=8044
+   259: 0x1048b91a7 M=1 fyne.io/fyne/v2/internal/painter/gl.(*coreContext).BufferData.BufferData.func1 /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:19540:0 s=19540
+   260: 0x1048b90df M=1 github.com/go-gl/gl/v2.1/gl.BufferData /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:19540:0 s=19539
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).BufferData /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:108:0 s=107
+   261: 0x1048b68b7 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).createBuffer /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:17:0 s=12
+   262: 0x1048b779b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:167:0 s=151
+   263: 0x104255b0b M=1 runtime.startlockedm /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:3169:0 s=3156
+   264: 0x104242c2c M=1 internal/runtime/atomic.(*UnsafePointer).StoreNoWB /opt/homebrew/Cellar/go/1.23.6/libexec/src/internal/runtime/atomic/types.go:479:0 s=478
+             runtime.stkbucket /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/mprof.go:345:0 s=275
+   265: 0x10424314f M=1 runtime.mProf_Malloc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/mprof.go:450:0 s=437
+   266: 0x104222dc3 M=1 runtime.profilealloc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1459:0 s=1453
+   267: 0x1042827c3 M=1 runtime.mallocgc /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/malloc.go:1253:0 s=983
+   268: 0x10421fe90 M=1 runtime.(*itabTableType).find /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/iface.go:122:0 s=107
+   269: 0x104281ac3 M=1 runtime.getitab /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/iface.go:65:0 s=44
+   270: 0x104220933 M=1 runtime.typeAssert /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/iface.go:474:0 s=467
+   271: 0x1048d5dfb M=1 fyne.io/fyne/v2/internal/driver/glfw.(*glCanvas).paint.func2 /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/driver/glfw/canvas.go:299:0 s=298
+   272: 0x1042599ab M=1 runtime.entersyscall_sysmon /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4493:0 s=4489
+   273: 0x10426ecaf M=1 runtime.pthread_mutex_lock /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sys_darwin.go:519:0 s=518
+   274: 0x10424a0d7 M=1 runtime.semasleep /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/os_darwin.go:50:0 s=39
+   275: 0x1045b87bc M=1 fyne.io/fyne/v2/internal/cache.(*expiringCache).isExpired /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/base.go:206:0 s=205
+   276: 0x1045b8223 M=1 fyne.io/fyne/v2/internal/cache.CleanCanvases /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/cache/base.go:117:0 s=98
+   277: 0x1046429df M=1 fyne.io/fyne/v2/layout.stackLayout.MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/layout/stacklayout.go:47:0 s=40
+   278: 0x1043ffbd7 M=1 net.(*netFD).Write /opt/homebrew/Cellar/go/1.23.6/libexec/src/net/fd_posix.go:96:0 s=95
+   279: 0x10440b3e3 M=1 net.(*conn).Write /opt/homebrew/Cellar/go/1.23.6/libexec/src/net/net.go:201:0 s=197
+   280: 0x1044a6e7b M=1 github.com/go-sql-driver/mysql.(*mysqlConn).writePacket /Users/Matt.Maloney/go/pkg/mod/github.com/go-sql-driver/mysql@v1.8.1/packets.go:123:0 s=94
+   281: 0x1044a8663 M=1 github.com/go-sql-driver/mysql.(*mysqlConn).writeCommandPacketStr /Users/Matt.Maloney/go/pkg/mod/github.com/go-sql-driver/mysql@v1.8.1/packets.go:444:0 s=425
+   282: 0x10449ee0b M=1 github.com/go-sql-driver/mysql.(*mysqlConn).query /Users/Matt.Maloney/go/pkg/mod/github.com/go-sql-driver/mysql@v1.8.1/connection.go:387:0 s=368
+   283: 0x10449fab3 M=1 github.com/go-sql-driver/mysql.(*mysqlConn).QueryContext /Users/Matt.Maloney/go/pkg/mod/github.com/go-sql-driver/mysql@v1.8.1/connection.go:519:0 s=509
+   284: 0x10435900b M=1 database/sql.ctxDriverQuery /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/ctxutil.go:48:0 s=46
+   285: 0x104361713 M=1 database/sql.(*DB).queryDC.func1 /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1778:0 s=1773
+   286: 0x104369823 M=1 database/sql.withLock /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:3566:0 s=3563
+   287: 0x1043610f3 M=1 database/sql.(*DB).queryDC /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1773:0 s=1763
+   288: 0x104360f33 M=1 database/sql.(*DB).query /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1756:0 s=1750
+   289: 0x104360d73 M=1 database/sql.(*DB).QueryContext.func1 /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1734:0 s=1733
+   290: 0x10435f97b M=1 database/sql.(*DB).retry /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1568:0 s=1566
+   291: 0x104360ca3 M=1 database/sql.(*DB).QueryContext /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1733:0 s=1729
+   292: 0x10490c93b M=1 database/sql.(*DB).Query /opt/homebrew/Cellar/go/1.23.6/libexec/src/database/sql/sql.go:1747:0 s=1746
+             main.selectAllGates /Users/Matt.Maloney/projects/play/gate-keeper/gate.go:47:0 s=43
+   293: 0x104634f77 M=1 fyne.io/fyne/v2/internal/widget.(*Base).MinSize /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/widget/base.go:68:0 s=65
+   294: 0x1048b789b M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:180:0 s=151
+   295: 0x10428a5e3 M=1 runtime.growslice /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/slice.go:272:0 s=177
+   296: 0x104866a0f M=1 fyne.io/fyne/v2/widget.splitLines /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:1111:0 s=1099
+   297: 0x10486530f M=1 fyne.io/fyne/v2/widget.lineBounds /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/richtext.go:945:0 s=944
+   298: 0x104639337 M=1 fyne.io/fyne/v2/internal/widget.(*SimpleRenderer).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/widget/simple_renderer.go:64:0 s=63
+   299: 0x104858e7b M=1 fyne.io/fyne/v2/widget.(*Label).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/label.go:92:0 s=86
+   300: 0x104858faf M=1 fyne.io/fyne/v2/widget.(*Label).SetText /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/label.go:111:0 s=107
+   301: 0x10490ebdf M=1 main.main.func3.3 /Users/Matt.Maloney/projects/play/gate-keeper/main.go:115:0 s=103
+   302: 0x10486f4d3 M=1 fyne.io/fyne/v2/widget.(*tableCellsRenderer).refreshForID /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/table.go:1403:0 s=1266
+   303: 0x10486ec9b M=1 fyne.io/fyne/v2/widget.(*tableCellsRenderer).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/table.go:1263:0 s=1262
+   304: 0x10486e19b M=1 fyne.io/fyne/v2/widget.(*tableRenderer).Refresh /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/widget/table.go:1127:0 s=1108
+   305: 0x1042520d0 M=1 internal/runtime/atomic.(*Uint32).CompareAndSwap /opt/homebrew/Cellar/go/1.23.6/libexec/src/internal/runtime/atomic/types.go:236:0 s=235
+             runtime.casgstatus /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:1193:0 s=1175
+   306: 0x10428832b M=1 runtime.exitsyscall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/proc.go:4661:0 s=4618
+   307: 0x1042814ff M=1 runtime.cgocall /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/cgocall.go:198:0 s=134
+   308: 0x1048800cf M=1 github.com/go-gl/gl/v2.1/gl._Cfunc_glowUniform2f _cgo_gotypes.go:43734:0 s=43733
+   309: 0x1048ba517 M=1 github.com/go-gl/gl/v2.1/gl.Uniform2f /Users/Matt.Maloney/go/pkg/mod/github.com/go-gl/gl@v0.0.0-20211210172815-726fda9656d6/v2.1/gl/package.go:26969:0 s=26968
+             fyne.io/fyne/v2/internal/painter/gl.(*coreContext).Uniform2f /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/gl_core.go:253:0 s=252
+   310: 0x1048b7877 M=1 fyne.io/fyne/v2/internal/painter/gl.(*painter).drawRectangle /Users/Matt.Maloney/go/pkg/mod/fyne.io/fyne/v2@v2.5.3/internal/painter/gl/draw.go:178:0 s=151
+Mappings
+1: 0x104210000/0x104a80000/0x0 /Users/Matt.Maloney/projects/play/gate-keeper/gate-keeper  [FN]
+2: 0x138b30000/0x138b3c000/0x0 /usr/lib/libobjc-trampolines.dylib  [FN]
+3: 0x138b6c000/0x138b78000/0x0 /usr/lib/libobjc-trampolines.dylib  [FN]
+4: 0x139f00000/0x139f68000/0x98000 /System/Library/Extensions/AppleMetalOpenGLRenderer.bundle/Contents/MacOS/AppleMetalOpenGLRenderer  [FN]
+5: 0x13b7d4000/0x13b7e4000/0x0 /System/Library/Fonts/Helvetica.ttc  [FN]
+6: 0x149100000/0x14982c000/0xa04000 /System/Library/Extensions/AGXMetalG14X.bundle/Contents/MacOS/AGXMetalG14X  [FN]
