@@ -2,6 +2,9 @@ package main
 
 import (
 	"image/color"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"strconv"
 	"time"
 
@@ -29,6 +32,10 @@ func main() {
 		config.GateConfig.Dbname,
 	)
 	var gs *GateSpectator = nil // Used for real-time gate updates
+	// REQUIRED FOR FLAMEGRAPH
+	go func() {
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}()
 
 	// Ensure cleanup functions are called when the application exits.
 	defer func() {
