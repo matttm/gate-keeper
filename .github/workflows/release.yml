@@ -1,57 +1,48 @@
-name: Build with fyne-cross
+name: Build and Package Fyne App (fyne-cross)
 
 on:
   push:
     branches:
-      - main  # Or the branch you want to trigger the workflow on
+      - main  # Or your desired branch
+  pull_request:
+    branches:
+      - main  # Or your desired branch
 
 jobs:
   build:
+    name: Build for ${{ matrix.target_os }}/${{ matrix.target_arch }}
+    runs-on: ubuntu-latest # fyne-cross requires docker/podman, so a Linux runner is generally preferred.
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: amd64
-          - os: ubuntu-latest
-            platform: linux
-            arch: 386
-          - os: windows-latest
-            platform: windows
-            arch: amd64
-          - os: windows-latest
-            platform: windows
-            arch: 386
-          - os: macos-latest
-            platform: darwin
-            arch: amd64
-          - os: macos-latest
-            platform: darwin
-            arch: arm64 # For Apple Silicon
-
-    runs-on: ${{ matrix.os }}
-
+          - target_os: linux
+            target_arch: amd64
+          - target_os: windows
+            target_arch: amd64
+          - target_os: darwin # macOS
+            target_arch: amd64 # Intel (x86_64)
+          - target_os: darwin # macOS
+            target_arch: arm64 # Apple Silicon
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'  # Or your desired Go version
+          go-version: '>=1.19' # Ensure you have a Go version compatible with Fyne
 
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v3.3.0 # Set up Docker to ensure fyne-cross can find the engine.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0 # Set up Docker Buildx for multi-platform builds
 
       - name: Install fyne-cross
         run: go install github.com/fyne-io/fyne-cross@latest
 
-      - name: Build and Package with fyne-cross
-        run: fyne-cross ${{ matrix.platform }} -arch=${{ matrix.arch }}
-        working-directory: .
+      - name: Build with fyne-cross
+        run: fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} --docker-platform linux/amd64 . # Specify the platform for the Docker image pull.
 
-      - name: Upload artifacts
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform }}-${{ matrix.arch }}
-          path: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}${{ matrix.ext }}
+          name: ${{ matrix.target_os }}-${{ matrix.target_arch }}
+          path: fyne-cross-dist/${{ matrix.target_os }}-${{ matrix.target_arch }} # Default output path for fyne-cross
