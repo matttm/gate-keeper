@@ -19,10 +19,10 @@ jobs:
             target_arch: amd64
           - target_os: windows
             target_arch: amd64
-          - target_os: darwin # macOS
-            target_arch: amd64 # Intel (x86_64)
-          - target_os: darwin # macOS
-            target_arch: arm64 # Apple Silicon
+          - target_os: darwin # macOS Intel
+            target_arch: amd64
+          - target_os: darwin # macOS Apple Silicon
+            target_arch: arm64
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -32,18 +32,18 @@ jobs:
         with:
           go-version: '>=1.19' # Ensure you have a Go version compatible with Fyne
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.3.0 # Set up Docker Buildx for multi-platform builds
+      # Remove the setup-buildx-action step as it's not needed without --docker-platform
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3.3.0 # Set up Docker Buildx for multi-platform builds
 
       - name: Install fyne-cross
-        run: go install github.com/fyne-io/fyne-cross@v1.4.0 # Or a specific version that supports --docker-platform
+        run: go install github.com/fyne-io/fyne-cross@latest # Install the latest version
 
       - name: Build with fyne-cross
-        run: fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} --docker-platform linux/amd64 . # Specify the platform for the Docker image pull.
+        run: fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} . # Replace 'myapp' with your app name
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target_os }}-${{ matrix.target_arch }}
           path: fyne-cross-dist/${{ matrix.target_os }}-${{ matrix.target_arch }} # Default output path for fyne-cross
-
