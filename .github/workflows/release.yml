@@ -1,98 +1,54 @@
-name: Build and Release Fyne App
+name: Build with fyne-cross
+
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main  # Or the branch you want to trigger the workflow on
+
 jobs:
   build:
-    name: Build and Release
     strategy:
       matrix:
-        os: [macos-latest]
         include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   ext: ""
+          - os: ubuntu-latest
+            platform: linux
+            arch: amd64
+          - os: ubuntu-latest
+            platform: linux
+            arch: 386
+          - os: windows-latest
+            platform: windows
+            arch: amd64
+          - os: windows-latest
+            platform: windows
+            arch: 386
           - os: macos-latest
             platform: darwin
-            ext: ".app"
-            arch: "amd64"
+            arch: amd64
           - os: macos-latest
             platform: darwin
-            ext: ".app"
-            arch: "arm64"
-          # - os: windows-latest
-          #   platform: windows
-          #   ext: ".exe"
+            arch: arm64 # For Apple Silicon
+
     runs-on: ${{ matrix.os }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-    - name: Install dependencies for Linux
-      if: matrix.platform == 'linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libegl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
-    - name: Install Fyne dependencies
-      run: |
-        go install fyne.io/fyne/v2/cmd/fyne@latest
-    - name: Get binary name (Unix)
-      if: matrix.platform != 'windows'
-      run: echo "BINARY_NAME=$(basename $(go list -m))" >> $GITHUB_ENV
-    - name: Get binary name (Windows)
-      if: matrix.platform == 'windows'
-      shell: pwsh
-      run: |
-        $BinaryName = (go list -m) -split '/' | Select-Object -Last 1
-        echo "BINARY_NAME=$BinaryName" >> $env:GITHUB_ENV
-    - name: Build for ${{ matrix.platform }}
-      if: matrix.platform != 'darwin'
-      run: |
-        go mod download
-        fyne package --os=${{ matrix.platform }}
-    - name: Build for macOS
-      if: matrix.platform == 'darwin'
-      run: |
-        go mod download
-        GOARCH=${{ matrix.arch }} fyne package --os=${{ matrix.platform }}
-    - name: Prepare binary for upload (macOS)
-      if: matrix.platform == 'darwin'
-      run: |
-        cp -r "${{ env.BINARY_NAME }}.app" "myapp-${{ matrix.platform }}-${{ matrix.arch }}.app"
-    - name: Prepare binary for upload (Windows)
-      if: matrix.platform == 'windows'
-      shell: pwsh
-      run: |
-        Move-Item "${{ env.BINARY_NAME }}.exe" "myapp-${{ matrix.platform }}.exe"
-    - name: Prepare binary for upload (Linux)
-      if: matrix.platform == 'linux'
-      run: |
-        mv "${{ env.BINARY_NAME }}" "myapp-${{ matrix.platform }}"
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}
-        path: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}${{ matrix.ext }}
-        retention-days: 5
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          myapp-linux/myapp-linux
-          myapp-darwin-arm64/myapp-darwin-arm64.app/**/*
-          myapp-darwin-amd64/myapp-darwin-amd64.app/**/*
-          myapp-windows/myapp-windows.exe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'  # Or your desired Go version
+
+      - name: Install fyne-cross
+        run: go install github.com/fyne-io/fyne-cross@latest
+
+      - name: Build and Package with fyne-cross
+        run: fyne-cross ${{ matrix.platform }} -arch=${{ matrix.arch }}
+        working-directory: ./your-fyne-app-directory # Replace with your app directory
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}
+          path: ./your-fyne-app-directory/fyne-cross/* # Adjust path based on fyne-cross output
