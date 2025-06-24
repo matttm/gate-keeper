@@ -32,15 +32,17 @@ jobs:
         with:
           go-version: '>=1.19' # Ensure you have a Go version compatible with Fyne
 
-      # Remove the setup-buildx-action step as it's not needed without --docker-platform
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v3.3.0 # Set up Docker Buildx for multi-platform builds
-
       - name: Install fyne-cross
-        run: go install github.com/fyne-io/fyne-cross@latest # Install the latest version
+        run: go install github.com/fyne-io/fyne-cross@latest # Or a specific version that supports the required flags
 
       - name: Build with fyne-cross
-        run: fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} -app-id com.yourcompany.myapp . # Specify the appID for macOS builds.
+        run: |
+          BUILD_COMMAND="fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} ."
+          if [[ "${{ matrix.target_os }}" == "darwin" ]]; then
+            BUILD_COMMAND="${BUILD_COMMAND} -app-id com.yourcompany.myapp --macosx-sdk-path /full/path/to/SDKs/MacOSX11.3.sdk" # Add appID and SDK path for macOS builds
+          fi
+          echo "$BUILD_COMMAND"
+          eval "$BUILD_COMMAND" # Execute the command
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
