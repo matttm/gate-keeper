@@ -30,16 +30,17 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '>=1.22' # Ensure you have a Go version compatible with Fyne
+          go-version: '>=1.19' # Ensure you have a Go version compatible with Fyne
 
       - name: Install fyne-cross
-        run: go install github.com/fyne-io/fyne-cross@latest # Or a specific version that supports the required flags
+        run: go install github.com/fyne-io/fyne-cross@latest # Or a specific version known to work
 
       - name: Build with fyne-cross
         run: |
           BUILD_COMMAND="fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} ."
           if [[ "${{ matrix.target_os }}" == "darwin" ]]; then
-            BUILD_COMMAND="${BUILD_COMMAND} -appID com.yourcompany.myapp --macosx-sdk-path /full/path/to/SDKs/MacOSX11.3.sdk" # Add appID and SDK path for macOS builds
+            # Add appID and SDK path for macOS builds ONLY
+            BUILD_COMMAND="${BUILD_COMMAND} -app-id com.yourcompany.myapp --macosx-sdk-path /full/path/to/SDKs/MacOSX11.3.sdk" 
           fi
           echo "$BUILD_COMMAND"
           eval "$BUILD_COMMAND" # Execute the command
