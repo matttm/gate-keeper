@@ -40,7 +40,7 @@ jobs:
         run: go install github.com/fyne-io/fyne-cross@latest # Install the latest version
 
       - name: Build with fyne-cross
-        run: fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} . # Replace 'myapp' with your app name
+        run: fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} -app-id com.yourcompany.myapp . # Specify the appID for macOS builds.
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
