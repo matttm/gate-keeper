@@ -51,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}
-          path: ./your-fyne-app-directory/fyne-cross/* # Adjust path based on fyne-cross output
+          path: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}${{ matrix.ext }}
