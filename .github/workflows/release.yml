@@ -39,7 +39,7 @@ jobs:
         run: |
           BUILD_COMMAND="fyne-cross ${{ matrix.target_os }} -arch=${{ matrix.target_arch }} -output myapp_${{ matrix.target_os }}_${{ matrix.target_arch }} ."
           if [[ "${{ matrix.target_os }}" == "darwin" ]]; then
-            BUILD_COMMAND="${BUILD_COMMAND} -app-id com.yourcompany.myapp --macosx-sdk-path /full/path/to/SDKs/MacOSX11.3.sdk" # Add appID and SDK path for macOS builds
+            BUILD_COMMAND="${BUILD_COMMAND} -appID com.yourcompany.myapp --macosx-sdk-path /full/path/to/SDKs/MacOSX11.3.sdk" # Add appID and SDK path for macOS builds
           fi
           echo "$BUILD_COMMAND"
           eval "$BUILD_COMMAND" # Execute the command
