@@ -44,7 +44,7 @@ NOTE: To be clear and specific, this program will update all gates that are part
 
 ## Getting started
 
-To begin using this program, it rrequires one file for configuration.
+To begin using this program, ensure you have go installed. The program also requires one file for configuration, which is described below.
 
 This file look like:
 
