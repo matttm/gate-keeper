@@ -8,11 +8,7 @@ jobs:
     name: Build and Release
     strategy:
       matrix:
-        os: [macos-latest]
         include:
-          # - os: ubuntu-latest
-          #   platform: linux
-          #   ext: ""
           - os: macos-latest
             platform: darwin
             ext: ".app"
@@ -21,9 +17,10 @@ jobs:
             platform: darwin
             ext: ".app"
             arch: "arm64"
-          # - os: windows-latest
-          #   platform: windows
-          #   ext: ".exe"
+          - os: windows-latest
+            platform: windows
+            ext: ".exe"
+            arch: "amd64"
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout code
@@ -32,11 +29,12 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
-    - name: Install dependencies for Linux
-      if: matrix.platform == 'linux'
+    - name: Install dependencies for Windows (OpenGL toolchain)
+      if: matrix.platform == 'windows'
+      shell: pwsh
       run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libegl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+        choco install -y mingw
+        "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - name: Install Fyne dependencies
       run: |
         go install fyne.io/fyne/v2/cmd/fyne@latest
@@ -49,34 +47,42 @@ jobs:
       run: |
         $BinaryName = (go list -m) -split '/' | Select-Object -Last 1
         echo "BINARY_NAME=$BinaryName" >> $env:GITHUB_ENV
-    - name: Build for ${{ matrix.platform }}
-      if: matrix.platform != 'darwin'
+    - name: Set package base name
+      run: echo "PACKAGE_BASENAME=${BINARY_NAME}-${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+    - name: Build for macOS
+      if: matrix.platform == 'darwin'
+      env:
+        GOARCH: ${{ matrix.arch }}
+        CGO_ENABLED: 1
       run: |
         go mod download
         fyne package --os=${{ matrix.platform }}
-    - name: Build for macOS
-      if: matrix.platform == 'darwin'
+    - name: Build for Windows
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      env:
+        GOARCH: ${{ matrix.arch }}
+        CGO_ENABLED: 1
       run: |
         go mod download
-        GOARCH=${{ matrix.arch }} fyne package --os=${{ matrix.platform }}
+        fyne package --os=${{ matrix.platform }}
     - name: Prepare binary for upload (macOS)
       if: matrix.platform == 'darwin'
       run: |
-        cp -r "${{ env.BINARY_NAME }}.app" "myapp-${{ matrix.platform }}-${{ matrix.arch }}.app"
+        cp -R "${BINARY_NAME}.app" "${PACKAGE_BASENAME}.app"
+        zip -r "${PACKAGE_BASENAME}.zip" "${PACKAGE_BASENAME}.app"
+        echo "PACKAGE_FILE=${PACKAGE_BASENAME}.zip" >> $GITHUB_ENV
     - name: Prepare binary for upload (Windows)
       if: matrix.platform == 'windows'
       shell: pwsh
       run: |
-        Move-Item "${{ env.BINARY_NAME }}.exe" "myapp-${{ matrix.platform }}.exe"
-    - name: Prepare binary for upload (Linux)
-      if: matrix.platform == 'linux'
-      run: |
-        mv "${{ env.BINARY_NAME }}" "myapp-${{ matrix.platform }}"
+        Rename-Item "${env:BINARY_NAME}.exe" "${env:PACKAGE_BASENAME}.exe"
+        echo "PACKAGE_FILE=$($env:PACKAGE_BASENAME).exe" >> $env:GITHUB_ENV
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}
-        path: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}${{ matrix.ext }}
+        name: ${{ env.PACKAGE_BASENAME }}
+        path: ${{ env.PACKAGE_FILE }}
         retention-days: 5
   release:
     needs: build
@@ -84,15 +90,19 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+    - name: Set binary name
+      run: echo "BINARY_NAME=$(basename $(grep '^module' go.mod | awk '{print $2}'))" >> $GITHUB_ENV
     - name: Download artifacts
       uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        merge-multiple: true
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          myapp-linux/myapp-linux
-          myapp-darwin-arm64/myapp-darwin-arm64.app/**/*
-          myapp-darwin-amd64/myapp-darwin-amd64.app/**/*
-          myapp-windows/myapp-windows.exe
+          artifacts/${{ env.BINARY_NAME }}-darwin-arm64.zip
+          artifacts/${{ env.BINARY_NAME }}-darwin-amd64.zip
+          artifacts/${{ env.BINARY_NAME }}-windows-amd64.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
