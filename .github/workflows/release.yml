@@ -1,57 +1,108 @@
-name: Build with fyne-cross
-
+name: Build and Release Fyne App
 on:
   push:
-    branches:
-      - main  # Or the branch you want to trigger the workflow on
-
+    tags:
+      - 'v*'
 jobs:
   build:
+    name: Build and Release
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: amd64
-          - os: ubuntu-latest
-            platform: linux
-            arch: 386
-          - os: windows-latest
-            platform: windows
-            arch: amd64
-          - os: windows-latest
-            platform: windows
-            arch: 386
           - os: macos-latest
             platform: darwin
-            arch: amd64
+            ext: ".app"
+            arch: "amd64"
           - os: macos-latest
             platform: darwin
-            arch: arm64 # For Apple Silicon
-
+            ext: ".app"
+            arch: "arm64"
+          - os: windows-latest
+            platform: windows
+            ext: ".exe"
+            arch: "amd64"
     runs-on: ${{ matrix.os }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'  # Or your desired Go version
-
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v3.3.0 # Set up Docker to ensure fyne-cross can find the engine.
-
-      - name: Install fyne-cross
-        run: go install github.com/fyne-io/fyne-cross@latest
-
-      - name: Build and Package with fyne-cross
-        run: fyne-cross ${{ matrix.platform }} -arch=${{ matrix.arch }}
-        working-directory: .
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.platform }}-${{ matrix.arch }}
-          path: myapp-${{ matrix.platform }}${{ matrix.arch != '' && format('-{0}', matrix.arch) || '' }}${{ matrix.ext }}
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    - name: Install dependencies for Windows (OpenGL toolchain)
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        choco install -y mingw
+        "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Install Fyne dependencies
+      run: |
+        go install fyne.io/fyne/v2/cmd/fyne@latest
+    - name: Get binary name (Unix)
+      if: matrix.platform != 'windows'
+      run: echo "BINARY_NAME=$(basename $(go list -m))" >> $GITHUB_ENV
+    - name: Get binary name (Windows)
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        $BinaryName = (go list -m) -split '/' | Select-Object -Last 1
+        echo "BINARY_NAME=$BinaryName" >> $env:GITHUB_ENV
+    - name: Set package base name
+      run: echo "PACKAGE_BASENAME=${BINARY_NAME}-${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+    - name: Build for macOS
+      if: matrix.platform == 'darwin'
+      env:
+        GOARCH: ${{ matrix.arch }}
+        CGO_ENABLED: 1
+      run: |
+        go mod download
+        fyne package --os=${{ matrix.platform }}
+    - name: Build for Windows
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      env:
+        GOARCH: ${{ matrix.arch }}
+        CGO_ENABLED: 1
+      run: |
+        go mod download
+        fyne package --os=${{ matrix.platform }}
+    - name: Prepare binary for upload (macOS)
+      if: matrix.platform == 'darwin'
+      run: |
+        cp -R "${BINARY_NAME}.app" "${PACKAGE_BASENAME}.app"
+        zip -r "${PACKAGE_BASENAME}.zip" "${PACKAGE_BASENAME}.app"
+        echo "PACKAGE_FILE=${PACKAGE_BASENAME}.zip" >> $GITHUB_ENV
+    - name: Prepare binary for upload (Windows)
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        Rename-Item "${env:BINARY_NAME}.exe" "${env:PACKAGE_BASENAME}.exe"
+        echo "PACKAGE_FILE=$($env:PACKAGE_BASENAME).exe" >> $env:GITHUB_ENV
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.PACKAGE_BASENAME }}
+        path: ${{ env.PACKAGE_FILE }}
+        retention-days: 5
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set binary name
+      run: echo "BINARY_NAME=$(basename $(grep '^module' go.mod | awk '{print $2}'))" >> $GITHUB_ENV
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        merge-multiple: true
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/${{ env.BINARY_NAME }}-darwin-arm64.zip
+          artifacts/${{ env.BINARY_NAME }}-darwin-amd64.zip
+          artifacts/${{ env.BINARY_NAME }}-windows-amd64.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
