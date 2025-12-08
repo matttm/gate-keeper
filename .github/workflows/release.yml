@@ -60,6 +60,7 @@ jobs:
       env:
         GOARCH: ${{ matrix.arch }}
         CGO_ENABLED: 1
+        MACOSX_DEPLOYMENT_TARGET: "10.14"
       run: |
         go mod download
         fyne package --os=${{ matrix.platform }}
