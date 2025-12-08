@@ -44,7 +44,9 @@ NOTE: To be clear and specific, this program will update all gates that are part
 
 ## Getting started
 
-To begin using this program, ensure you have go installed. The program also requires one file for configuration, which is described below.
+If you don't want to build from sources, then just download your systems corresponding binary from the release section of this repo. 
+
+To begin building from source, ensure you have go installed. The program also requires one file for configuration, which is described below.
 
 This file look like:
 
