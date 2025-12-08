@@ -35,9 +35,9 @@ jobs:
       run: |
         choco install -y mingw
         "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-    - name: Install Fyne dependencies
+    - name: Install Fyne CLI
       run: |
-        go install fyne.io/fyne/v2/cmd/fyne@latest
+        go install fyne.io/tools/cmd/fyne@latest
     - name: Get binary name (Unix)
       if: matrix.platform != 'windows'
       run: echo "BINARY_NAME=$(basename $(go list -m))" >> $GITHUB_ENV
@@ -47,8 +47,14 @@ jobs:
       run: |
         $BinaryName = (go list -m) -split '/' | Select-Object -Last 1
         echo "BINARY_NAME=$BinaryName" >> $env:GITHUB_ENV
-    - name: Set package base name
+    - name: Set package base name (non-Windows)
+      if: matrix.platform != 'windows'
       run: echo "PACKAGE_BASENAME=${BINARY_NAME}-${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+    - name: Set package base name (Windows)
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        echo "PACKAGE_BASENAME=$($env:BINARY_NAME)-${{ matrix.platform }}-${{ matrix.arch }}" >> $env:GITHUB_ENV
     - name: Build for macOS
       if: matrix.platform == 'darwin'
       env:
@@ -76,8 +82,10 @@ jobs:
       if: matrix.platform == 'windows'
       shell: pwsh
       run: |
-        Rename-Item "${env:BINARY_NAME}.exe" "${env:PACKAGE_BASENAME}.exe"
-        echo "PACKAGE_FILE=$($env:PACKAGE_BASENAME).exe" >> $env:GITHUB_ENV
+        $pkgBase = if ($env:PACKAGE_BASENAME) { $env:PACKAGE_BASENAME } else { "$($env:BINARY_NAME)-${{ matrix.platform }}-${{ matrix.arch }}" }
+        Rename-Item "${env:BINARY_NAME}.exe" "$pkgBase.exe"
+        echo "PACKAGE_BASENAME=$pkgBase" >> $env:GITHUB_ENV
+        echo "PACKAGE_FILE=$pkgBase.exe" >> $env:GITHUB_ENV
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
