@@ -32,10 +32,14 @@ func main() {
 		config.GateConfig.Dbname,
 	)
 	var gs *GateSpectator = nil // Used for real-time gate updates
-	// REQUIRED FOR FLAMEGRAPH
-	go func() {
-		log.Fatal(http.ListenAndServe(":8080", nil))
-	}()
+
+	// Start pprof server if enabled in config (for profiling/flamegraph)
+	if config.EnablePprof {
+		go func() {
+			log.Println("Starting pprof server on :8080")
+			log.Fatal(http.ListenAndServe(":8080", nil))
+		}()
+	}
 
 	// Ensure cleanup functions are called when the application exits.
 	defer func() {
