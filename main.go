@@ -105,28 +105,15 @@ func main() {
 				return container.NewStack(bg, label)
 			},
 			func(id widget.TableCellID, o fyne.CanvasObject) {
-				// Update cell content and color
+				// Update cell content and color using the table cell service
 				stack := o.(*fyne.Container)
 				bg := stack.Objects[0].(*canvas.Rectangle)
 				label := stack.Objects[1].(*widget.Label)
 
-				if id.Col == 0 {
-					label.SetText(gates[id.Row].GateName)
-				}
-				if id.Col == 1 {
-					p := RelativePosition(getGatePosition(gates[id.Row]))
-					positions := []string{"Past", "Open", "Future"}
-					label.SetText(positions[p+1])
-				}
-
-				// Color code: yellow if not linear, green if open, red otherwise
-				if !_isTimelineLinear {
-					bg.FillColor = color.RGBA{R: 255, G: 255, B: 0, A: 128}
-				} else if isGateOpen(gates[id.Row]) {
-					bg.FillColor = color.RGBA{R: 0, G: 255, B: 0, A: 128}
-				} else {
-					bg.FillColor = color.RGBA{R: 255, G: 0, B: 0, A: 128}
-				}
+				// Get the cell style (text and color) from the service
+				cellStyle := GetCellStyle(id.Col, gates[id.Row], _isTimelineLinear)
+				label.SetText(cellStyle.Text)
+				bg.FillColor = cellStyle.Color
 				bg.Refresh()
 			},
 		)
