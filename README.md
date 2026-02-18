@@ -112,19 +112,6 @@ You need to create a file called `config.json` in the **same folder** as the gat
 	"EnablePprof": false
 }
 ```
-	},
-	"GateConfig": {
-		"Dbname": "your_database_name",
-		"TableName": "your_gates_table_name",
-		"GateNameKey": "gate_name_column",
-		"GateYearKey": "year_column",
-		"GateOrderKey": "order_column",
-		"GateIsApplicableFlag": "active_flag_column",
-		"StartKey": "start_date_column",
-		"EndKey": "end_date_column"
-	}
-}
-```
 
 **What each field means:**
 
