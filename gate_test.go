@@ -162,3 +162,164 @@ func TestGate_ShouldCreateQueryStrings(t *testing.T) {
 		assert.Equal(t, q, v.expectedQueries)
 	}
 }
+
+func TestIsTimelineLinear(t *testing.T) {
+	type IsTimelineLinearTest struct {
+		gates    []*Gate
+		expected bool
+		desc     string
+	}
+
+	table := []IsTimelineLinearTest{
+		{
+			gates: []*Gate{
+				{GateName: "A", Start: "2025-01-01 00:00:00", End: "2025-01-05 00:00:00"},
+				{GateName: "B", Start: "2025-01-06 00:00:00", End: "2025-01-10 00:00:00"},
+				{GateName: "C", Start: "2025-01-11 00:00:00", End: "2025-01-15 00:00:00"},
+			},
+			expected: true,
+			desc:     "Linear timeline with no overlaps",
+		},
+		{
+			gates: []*Gate{
+				{GateName: "A", Start: "2025-01-01 00:00:00", End: "2025-01-05 00:00:00"},
+				{GateName: "B", Start: "2025-01-05 00:00:00", End: "2025-01-10 00:00:00"},
+				{GateName: "C", Start: "2025-01-11 00:00:00", End: "2025-01-15 00:00:00"},
+			},
+			expected: false,
+			desc:     "Non-linear timeline with gates touching (B starts when A ends)",
+		},
+		{
+			gates: []*Gate{
+				{GateName: "A", Start: "2025-01-01 00:00:00", End: "2025-01-10 00:00:00"},
+				{GateName: "B", Start: "2025-01-05 00:00:00", End: "2025-01-15 00:00:00"},
+				{GateName: "C", Start: "2025-01-16 00:00:00", End: "2025-01-20 00:00:00"},
+			},
+			expected: false,
+			desc:     "Non-linear timeline with overlapping gates",
+		},
+		{
+			gates: []*Gate{
+				{GateName: "A", Start: "2025-01-01 00:00:00", End: "2025-01-05 00:00:00"},
+				{GateName: "B", Start: "2025-01-10 00:00:00", End: "2025-01-15 00:00:00"},
+				{GateName: "C", Start: "2025-01-06 00:00:00", End: "2025-01-09 00:00:00"},
+			},
+			expected: false,
+			desc:     "Non-linear timeline with out-of-order gates",
+		},
+		{
+			gates: []*Gate{
+				{GateName: "A", Start: "2025-01-01 00:00:00", End: "2025-01-05 00:00:00"},
+			},
+			expected: true,
+			desc:     "Single gate is linear",
+		},
+		{
+			gates:    []*Gate{},
+			expected: true,
+			desc:     "Empty gates list is linear",
+		},
+	}
+
+	for _, v := range table {
+		result := isTimelineLinear(v.gates)
+		assert.Equal(t, v.expected, result, v.desc)
+	}
+}
+
+func TestIsGateOpen(t *testing.T) {
+	type IsGateOpenTest struct {
+		gate     *Gate
+		expected bool
+		desc     string
+	}
+
+	now := time.Now()
+	table := []IsGateOpenTest{
+		{
+			gate: &Gate{
+				GateName: "OpenGate",
+				Start:    now.Add(-12 * time.Hour).Format(createdFormat),
+				End:      now.Add(12 * time.Hour).Format(createdFormat),
+			},
+			expected: true,
+			desc:     "Gate currently open (now is between start and end)",
+		},
+		{
+			gate: &Gate{
+				GateName: "PastGate",
+				Start:    now.Add(-72 * time.Hour).Format(createdFormat),
+				End:      now.Add(-24 * time.Hour).Format(createdFormat),
+			},
+			expected: false,
+			desc:     "Gate in the past (ended before now)",
+		},
+		{
+			gate: &Gate{
+				GateName: "FutureGate",
+				Start:    now.Add(24 * time.Hour).Format(createdFormat),
+				End:      now.Add(72 * time.Hour).Format(createdFormat),
+			},
+			expected: false,
+			desc:     "Gate in the future (starts after now)",
+		},
+		{
+			gate: &Gate{
+				GateName: "JustStarted",
+				Start:    now.Add(-2 * time.Hour).Format(createdFormat),
+				End:      now.Add(24 * time.Hour).Format(createdFormat),
+			},
+			expected: true,
+			desc:     "Gate that started recently is open",
+		},
+	}
+
+	for _, v := range table {
+		result := isGateOpen(v.gate)
+		assert.Equal(t, v.expected, result, v.desc)
+	}
+}
+
+func TestGetGatePosition(t *testing.T) {
+	type GetGatePositionTest struct {
+		gate     *Gate
+		expected int
+		desc     string
+	}
+
+	now := time.Now()
+	table := []GetGatePositionTest{
+		{
+			gate: &Gate{
+				GateName: "OpenGate",
+				Start:    now.Add(-12 * time.Hour).Format(createdFormat),
+				End:      now.Add(12 * time.Hour).Format(createdFormat),
+			},
+			expected: 0,
+			desc:     "Gate currently open returns 0",
+		},
+		{
+			gate: &Gate{
+				GateName: "PastGate",
+				Start:    now.Add(-72 * time.Hour).Format(createdFormat),
+				End:      now.Add(-24 * time.Hour).Format(createdFormat),
+			},
+			expected: -1,
+			desc:     "Gate in the past returns -1",
+		},
+		{
+			gate: &Gate{
+				GateName: "FutureGate",
+				Start:    now.Add(24 * time.Hour).Format(createdFormat),
+				End:      now.Add(72 * time.Hour).Format(createdFormat),
+			},
+			expected: 1,
+			desc:     "Gate in the future returns 1",
+		},
+	}
+
+	for _, v := range table {
+		result := getGatePosition(v.gate)
+		assert.Equal(t, v.expected, result, v.desc)
+	}
+}

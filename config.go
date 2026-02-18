@@ -25,6 +25,7 @@ type Credentials Environment
 type Config struct {
 	Credentials Credentials
 	GateConfig  GateConfig
+	EnablePprof bool // Enable pprof server on :8080 for profiling
 }
 
 // GateConfig holds configuration for gate table/fields.

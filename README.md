@@ -108,6 +108,20 @@ You need to create a file called `config.json` in the **same folder** as the gat
 		"GateIsApplicableFlag": "active_flag_column",
 		"StartKey": "start_date_column",
 		"EndKey": "end_date_column"
+	},
+	"EnablePprof": false
+}
+```
+	},
+	"GateConfig": {
+		"Dbname": "your_database_name",
+		"TableName": "your_gates_table_name",
+		"GateNameKey": "gate_name_column",
+		"GateYearKey": "year_column",
+		"GateOrderKey": "order_column",
+		"GateIsApplicableFlag": "active_flag_column",
+		"StartKey": "start_date_column",
+		"EndKey": "end_date_column"
 	}
 }
 ```
@@ -130,6 +144,9 @@ You need to create a file called `config.json` in the **same folder** as the gat
 - `StartKey`: The column name for when a gate opens (e.g., "start" or "start_date")
 - `EndKey`: The column name for when a gate closes (e.g., "end" or "end_date")
 
+**Performance Profiling Section**:
+- `EnablePprof`: Set to `true` to enable the pprof profiling server on port 8080 (used for performance analysis and flamegraphs). Should be `false` for normal use.
+
 **Example with real values:**
 ```json
 {
@@ -148,7 +165,8 @@ You need to create a file called `config.json` in the **same folder** as the gat
 		"GateIsApplicableFlag": "is_active",
 		"StartKey": "open_date",
 		"EndKey": "close_date"
-	}
+	},
+	"EnablePprof": false
 }
 ```
 
