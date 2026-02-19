@@ -61,6 +61,8 @@ func selectAllGates(c *GateConfig, year int) []*Gate {
 }
 
 // Sets all gates' start/end times relative to a selected gate and position
+//
+// prerequisite: gates are sorted by the ordering column already
 func setGatesRelativeTo(c *GateConfig, year int, gate string, pos RelativePosition) {
 	var wg sync.WaitGroup
 	gates := selectAllGates(c, year) // Get all gates for the year
