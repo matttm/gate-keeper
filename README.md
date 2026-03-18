@@ -207,8 +207,7 @@ When the program opens, you'll see a window with three dropdown menus and a butt
 
 Once you select a year, you'll see a table showing all gates and their current status:
 
-<img width="509" alt="Screenshot 2025-06-08 at 2 14 05 PM" src="https://github.com/user-attachments/assets/cdcb735b-8ea8-4abf-bdcf-401d3399dad8" />
-<img width="504" alt="Screenshot 2025-06-08 at 2 10 06 PM" src="https://github.com/user-attachments/assets/322c8f5c-90fa-4a20-868a-34543570fb74" />
+<img width="625" height="583" alt="Screenshot 2026-03-18 at 3 20 43 PM" src="https://github.com/user-attachments/assets/7cddab5f-f39d-4f9a-b5b2-13557d3efab5" />
 
 **Status Colors:**
 - **Green** - Gate is currently open
@@ -225,8 +224,6 @@ The table updates automatically every second, so you can see status changes in r
 **Gate Health Check:**
 
 If all gates turn yellow, this means the gates are out of order in your database:
-
-<img width="522" alt="Screenshot 2025-06-08 at 2 08 52 PM" src="https://github.com/user-attachments/assets/49c5c40d-c8be-4901-98a3-ccc27aa4f8d7" />
 
 This typically means the dates don't follow a logical sequence (e.g., gate B starts before gate A ends).
 
