@@ -208,6 +208,7 @@ When the program opens, you'll see a window with three dropdown menus and a butt
 Once you select a year, you'll see a table showing all gates and their current status:
 
 <img width="625" height="583" alt="Screenshot 2026-03-18 at 3 20 43 PM" src="https://github.com/user-attachments/assets/7cddab5f-f39d-4f9a-b5b2-13557d3efab5" />
+<img width="589" height="566" alt="Screenshot 2026-03-18 at 3 21 19 PM" src="https://github.com/user-attachments/assets/ccc38c99-6d53-47c2-a7ad-16df203aaa01" />
 
 **Status Colors:**
 - **Green** - Gate is currently open
