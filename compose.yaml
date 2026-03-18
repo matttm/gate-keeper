@@ -1,0 +1,27 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: gate-keeper-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: gate_keeper_demo
+      MYSQL_USER: gatekeeper
+      MYSQL_PASSWORD: gatekeeper_pw
+      MYSQL_ROOT_PASSWORD: root_pw
+    ports:
+      - "3307:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_pw"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  mysql_data:

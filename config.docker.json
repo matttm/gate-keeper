@@ -1,0 +1,19 @@
+{
+  "Credentials": {
+    "User": "gatekeeper",
+    "Pass": "gatekeeper_pw",
+    "Host": "127.0.0.1",
+    "Port": "3307"
+  },
+  "GateConfig": {
+    "Dbname": "gate_keeper_demo",
+    "TableName": "application_gates",
+    "GateNameKey": "gate_code",
+    "GateYearKey": "cycle_year",
+    "GateOrderKey": "sequence_number",
+    "GateIsApplicableFlag": "is_active",
+    "StartKey": "open_date",
+    "EndKey": "close_date"
+  },
+  "EnablePprof": false
+}
