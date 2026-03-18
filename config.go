@@ -40,32 +40,53 @@ type GateConfig struct {
 	EndKey               string
 }
 
+func resolveConfigPath() (string, error) {
+	if filePath := os.Getenv("GATE_KEEPER_CONFIG"); filePath != "" {
+		return filePath, nil
+	}
+
+	workingDir, err := os.Getwd()
+	if err == nil {
+		filePath := filepath.Join(workingDir, "config.json")
+		if _, statErr := os.Stat(filePath); statErr == nil {
+			return filePath, nil
+		}
+	}
+
+	executablePath, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(filepath.Dir(executablePath), "config.json"), nil
+}
+
 // GetConfig loads the configuration from config.json (singleton).
 func GetConfig() *Config {
 	if _config == nil {
-		// Get the directory where the executable is located.
-		executablePath, err := os.Executable()
+		filePath, err := resolveConfigPath()
 		if err != nil {
-			fmt.Println("Error getting executable path:", err)
+			fmt.Println("Error resolving config path:", err)
 			panic(err)
 		}
-		executableDir := filepath.Dir(executablePath)
-		// Construct the path to the JSON file relative to the executable.
-		filePath := filepath.Join(executableDir, "config.json") // or "config/data.json" if in a subdirectory
+
 		file, err := os.Open(filePath)
 		if err != nil {
-			// Handle error opening config file
+			fmt.Println("Error opening config file:", err)
+			panic(err)
 		}
 		defer file.Close()
 
 		var config Config
 		b, err := io.ReadAll(file)
 		if err != nil {
-			// Handle error reading config file
+			fmt.Println("Error reading config file:", err)
+			panic(err)
 		}
 		err = json.Unmarshal(b, &config)
 		if err != nil {
-			fmt.Println(config)
+			fmt.Println("Error parsing config file:", err)
+			panic(err)
 		}
 		_config = &config
 	}

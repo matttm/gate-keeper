@@ -169,6 +169,24 @@ You need to create a file called `config.json` in the **same folder** as the gat
 3. Run: `./gate-keeper`
 4. If you get a permission error, first run: `chmod +x gate-keeper`
 
+### Run with the Included Docker MySQL Demo Database
+
+If you want to try gate-keeper with a local seeded MySQL database from this repository:
+
+```bash
+docker compose up -d
+GATE_KEEPER_CONFIG=config.docker.json go run .
+```
+
+If you already built the binary, run this instead:
+
+```bash
+docker compose up -d
+GATE_KEEPER_CONFIG=config.docker.json ./gate-keeper
+```
+
+This uses the included `compose.yaml`, `config.docker.json`, and seeded dummy data under `docker/mysql/init/`.
+
 ### Step 4: Using the Interface
 
 When the program opens, you'll see a window with three dropdown menus and a button:
